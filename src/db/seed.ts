@@ -1,7 +1,10 @@
 import { eq } from "drizzle-orm";
+import { loadEnvFiles } from "./load-env";
 import { db } from "./index";
 import { users } from "./schema";
 import { hashPassword } from "../lib/auth/password";
+
+loadEnvFiles();
 
 async function main() {
   const username = process.env.ADMIN_USERNAME ?? "admin";

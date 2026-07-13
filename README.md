@@ -29,6 +29,7 @@ cp .env.example .env.local
 - `DATABASE_URL`：PostgreSQL 连接串（本地或 Supabase）
 - `SESSION_SECRET`：≥32 字符随机串
 - `ADMIN_USERNAME` / `ADMIN_PASSWORD`：种子管理员账号
+- `AI_BASE_URL` / `AI_API_KEY` / `AI_MODEL`（可选，周报 AI 评语）
 
 ### 3. 数据库
 
@@ -93,15 +94,15 @@ npm run dev
 - [x] 智能调课引擎（5 条规则）+ 确认 / 忽略 / 撤销流程
 - [x] 周报 / 月报 / 趋势报告 + AI 评语（8s 超时 + 模板兜底）
 - [x] 三页 UI 全部落地（today / activity / insights）
-- [x] 引擎边界测试 + AI fallback 测试 + mutationId 幂等测试（80 tests pass）
+- [x] 引擎边界测试 + AI fallback 测试 + mutationId 幂等测试
 
-### Phase 4（进行中）
-- [ ] VDOT 引擎（ Daniels 公式 + 等价成绩 + 训练配速区间 + 负分割策略 ）
-- [ ] 比赛策略 API（计算 + 保存 + 列表 + 删除）
-- [ ] 跑鞋管理 CRUD + API（里程自动累加）
-- [ ] 力量训练记录 CRUD + API
-- [ ] /tools 页落地（跑鞋 / 力量 / 比赛策略三个入口）
-- [ ] Phase 4 测试 + 文档更新
+### Phase 4
+- [x] VDOT 引擎（Daniels 公式 + 等价成绩 + 训练配速区间 + 负分割策略）
+- [x] 比赛策略 API（计算 + 保存 + 列表 + 删除）
+- [x] 跑鞋管理 CRUD + API（里程自动累加）
+- [x] 力量训练记录 CRUD + API（core/hips/calves/balance/mobility）
+- [x] /tools 页落地（跑鞋 / 力量 / 比赛策略三个入口）
+- [x] Phase 4 测试 + 文档更新
 
 ## 关键训练 API
 
@@ -122,3 +123,17 @@ npm run dev
 | GET/POST | `/api/v1/reports/weekly` |
 | GET/POST | `/api/v1/reports/monthly` |
 | GET/POST | `/api/v1/reports/trends` |
+| GET/POST | `/api/v1/shoes` |
+| GET/PUT/DELETE | `/api/v1/shoes/:id` |
+| GET/POST | `/api/v1/strength` |
+| GET/PUT/DELETE | `/api/v1/strength/:id` |
+| GET/POST | `/api/v1/strategies` |
+| GET/DELETE | `/api/v1/strategies/:id` |
+
+### Phase 4 API 备注
+
+- `POST /api/v1/strategies` body: `{ distanceType, targetTimeSec, label?, save? }`
+  - `save` 缺省 / `false` → 纯计算（不写库）
+  - `save: true` → 计算并持久化
+- `GET /api/v1/shoes?active=1` → 仅未退役跑鞋
+- `GET /api/v1/strength?templates=1` → 返回力量模板列表

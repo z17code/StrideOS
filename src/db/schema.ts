@@ -376,6 +376,30 @@ export const strengthSessions = pgTable(
   (t) => [index("strength_sessions_user_id_idx").on(t.userId)],
 );
 
+// ─── Race strategies (Phase 4) ───────────────────────────
+
+export const raceStrategies = pgTable(
+  "race_strategies",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    distanceType: distanceTypeEnum("distance_type").notNull(),
+    targetTimeSec: integer("target_time_sec").notNull(),
+    vdot: real("vdot").notNull(),
+    averagePaceMinPerKm: real("average_pace_min_per_km").notNull(),
+    trainingPaces: jsonb("training_paces").notNull(),
+    equivalentTimes: jsonb("equivalent_times").notNull(),
+    segments: jsonb("segments").notNull(),
+    label: text("label"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("race_strategies_user_id_idx").on(t.userId)],
+);
+
 // ─── Relations ───────────────────────────────────────────
 
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -389,6 +413,8 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   activities: many(activities),
   checkins: many(dailyCheckins),
   shoes: many(shoes),
+  strengthSessions: many(strengthSessions),
+  raceStrategies: many(raceStrategies),
 }));
 
 export const planVersionsRelations = relations(planVersions, ({ one, many }) => ({
@@ -421,3 +447,5 @@ export type DailyCheckin = typeof dailyCheckins.$inferSelect;
 export type AdjustmentProposal = typeof adjustmentProposals.$inferSelect;
 export type Shoe = typeof shoes.$inferSelect;
 export type StrengthSession = typeof strengthSessions.$inferSelect;
+export type RaceStrategy = typeof raceStrategies.$inferSelect;
+export type NewRaceStrategy = typeof raceStrategies.$inferInsert;

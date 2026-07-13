@@ -1,11 +1,10 @@
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   activities,
   shoes,
   planWorkouts,
   type Activity,
-  type Shoe,
 } from "@/db/schema";
 import type {
   CreateActivityInput,
@@ -27,19 +26,6 @@ export function mapActivity(a: Activity) {
     planWorkoutId: a.planWorkoutId,
     mutationId: a.mutationId,
     createdAt: a.createdAt,
-  };
-}
-
-export function mapShoe(s: Shoe) {
-  return {
-    id: s.id,
-    brand: s.brand,
-    model: s.model,
-    purchaseDate: s.purchaseDate,
-    totalKm: s.totalKm,
-    lastUsedAt: s.lastUsedAt,
-    isRetired: s.isRetired,
-    createdAt: s.createdAt,
   };
 }
 
@@ -139,12 +125,10 @@ export async function deleteActivity(userId: string, activityId: string) {
   return existing;
 }
 
+/** @deprecated Prefer listAllShoes from @/lib/shoes/service */
 export async function getShoes(userId: string) {
-  return db
-    .select()
-    .from(shoes)
-    .where(eq(shoes.userId, userId))
-    .orderBy(asc(shoes.brand), asc(shoes.model));
+  const { listAllShoes } = await import("@/lib/shoes/service");
+  return listAllShoes(userId);
 }
 
 export async function linkPlanWorkoutInfo(planWorkoutId: string) {
