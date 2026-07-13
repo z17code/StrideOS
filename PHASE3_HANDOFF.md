@@ -1,75 +1,51 @@
-# Phase 3 交接（2026-07-13）
+# Phase 4 交接（2026-07-13）
 
 ## 已完成
 
-### Validators
-- `src/lib/validators/checkin.ts` — fatigue 1–5, pain 0–10
-- `src/lib/validators/activity.ts` — create/update + `mutationId`
-- `src/lib/validators/adjustment.ts` — propose/confirm/reject
-- `src/lib/validators/report.ts` — weekly/monthly query + Report 类型
-
-### Service 层
-| 文件 | 功能 |
-|------|------|
-| `src/lib/checkins/service.ts` | get/upsert/listRecent + mapCheckin |
-| `src/lib/activities/service.ts` | CRUD + mutationId 幂等 + getShoes + mapActivity |
-| `src/lib/adjustments/engine.ts` | 纯函数 proposeAdjustments + applyProposalToWorkouts |
-| `src/lib/adjustments/service.ts` | list/get/propose/confirm/reject/revert + mapProposal |
-| `src/lib/reports/ai.ts` | isAiConfigured + generateAiSummary (8s 超时) |
-| `src/lib/reports/service.ts` | buildWeekly/Monthly/TrendReport + template 兜底 |
-
-### API 路由（11 条，全部 `requireUser` + Zod safeParse）
-```
-GET/POST        /api/v1/check-ins
-GET/POST        /api/v1/activities
-GET/PUT/DELETE  /api/v1/activities/[id]
-GET             /api/v1/adjustments
-POST            /api/v1/adjustments/propose
-PUT             /api/v1/adjustments/[id]/confirm
-PUT             /api/v1/adjustments/[id]/reject
-POST            /api/v1/adjustments/[id]/revert
-GET             /api/v1/reports/weekly
-GET             /api/v1/reports/monthly
-GET             /api/v1/reports/trends
-```
-
-### 调课规则（engine 已实现）
-1. 漏课（近 7 天无 activity）→ easy 取消 / quality 尝试 move
-2. RPE ≥ target+2 → reduce_intensity
-3. 连续 ≥3 天 fatigue≥4 或 pain≥5 → reduce_load
-4. 疼痛 ≥7 → cancel（critical）
-5. 备注含「胸痛/晕厥…」→ medical_alert
-
-### confirm/revert 约定
-- propose 只写 `adjustment_proposals` pending，**不改课表**
-- confirm 新建 `plan_versions`（inactive→active flip）
-- revert 仅最近一次 confirmed：停用 to、重激活 from
+### VDOT 引擎（纯函数，未 commit）
+- `src/lib/strategy/engine.ts` — Daniels-Gilbert 公式实现
+  - `computeVdot(distanceKm, timeSec)` — VO2 = -4.6 + 0.182252·v + 0.000104·v²，v = m/min
+  - `vdotToTrainingPaces(vdot)` — 五档区间（easy/marathon/threshold/interval/repetition）
+  - `equivalentRaceTimes(vdot)` — 二分法求等价成绩
+  - `negativeSplitStrategy(distanceType, targetTimeSec)` — 半马3段/全马4段/10k2段，末段吸收舍入余量保证 `sum duration === targetTimeSec`
+  - `buildRaceStrategy(...)` — 汇总为 RaceStrategy 对象
 
 ## 待完成
 
-### UI（页面仍是 Phase 3 占位文案）
-- `src/app/(app)/today/page.tsx` — 打卡表单 + 待确认调课列表
-- `src/app/(app)/activity/page.tsx` — 记录列表 + 新建表单
-- `src/app/(app)/insights/page.tsx` — weekly/trends 报告展示
+### 策略功能
+- `src/lib/strategy/engine.test.ts` — VDOT 单调性、数值区间、配速单调、等价时间往返、负分割总和
+- `src/db/schema.ts` 末尾追加 `raceStrategies` 表
+- `drizzle/0002_phase4_strategy.sql` + 更新 `_journal.json`
+- `src/lib/strategy/service.ts` — computeStrategy / create / list / get / delete
+- `src/lib/validators/strategy.ts` — computeStrategySchema（distanceType + targetTimeSec）
+- `src/app/api/v1/strategies/route.ts` + `[id]/route.ts` — GET/POST list、POST compute+save、DELETE
 
-### Tests
-- engine 边界单测（漏课/RPE/连续异常/疼痛/医疗词）
-- mutationId 幂等集成测试
-- AI fallback 测试（无 key → 模板）
+### 跑鞋管理
+- `src/lib/shoes/service.ts` — 从 activities 迁出 mapShoe/getShoes，新增 create/update/delete/listActive/listAll
+- `src/lib/validators/shoe.ts` — createShoeSchema / updateShoeSchema
+- `src/app/api/v1/shoes/route.ts` + `[id]/route.ts` — GET/POST/PUT/DELETE
 
-### 建议修的 bug
-1. engine `ActivityRecord` 已有 `notes`，service 已传入 `a.notes` — 确认 medical_alert 触发
-2. `applyProposalToWorkouts` 返回 `cancelledIds` — confirm 已用，确认无 bug
-3. 跑鞋里程已改为 `sql` 累加 + `shoes.userId` 校验
-4. `listRecentCheckins` 已是降序
-5. confirm 的 dayOfWeek 已用 `dayOfWeek()` from `@/lib/datetime`
-6. 清理未用 import
+### 力量训练
+- `src/lib/strength/service.ts` — STRENGTH_TEMPLATES + CRUD
+- `src/lib/validators/strength.ts` + `src/app/api/v1/strength/route.ts` + `[id]/route.ts` — templateId enum: core/hips/calves/balance/mobility
+
+### Tools 页面
+- `src/app/(app)/tools/page.tsx` — hub 改造（三卡片链接）
+- `src/app/(app)/tools/shoes/page.tsx` — 跑鞋列表 + 新建 + 退役
+- `src/app/(app)/tools/strength/page.tsx` — 力量记录列表 + 新建
+- `src/app/(app)/tools/race/page.tsx` — VDOT 计算器 + 负分割展示 + 保存策略
+
+### 文档
+- README.md 补 Phase 3 + Phase 4 checklist + API 表
+- 删除本交接文档（PHASE3_HANDOFF.md），功能已合并到 Phase 3 UI + 测试
 
 ## 下一步
-1. `npm run typecheck && npm test && npm run build` 修编译错误
-2. 实现三页 UI（参考 `generate-plan-button.tsx` 客户端模式）
-3. 写测试
-4. 配 `DATABASE_URL` 后 `npm run db:push`
+1. 引擎写测试 → commit
+2. 实现 schema + 迁移
+3. 实现 service + validator + route（shoes / strength / strategies）
+4. 实现 tools 三页面
+5. `npm run typecheck && npm test && npm run build`
+6. 配 `DATABASE_URL` 后 `npm run db:push`
 
 ## 环境变量
 ```
@@ -79,10 +55,3 @@ AI_BASE_URL=      # 可选
 AI_API_KEY=       # 可选
 AI_MODEL=         # 可选，默认 gpt-4o-mini
 ```
-
-## 约定
-- 纯逻辑在 `src/lib`，路由薄
-- 数据按 `auth.user.id` 隔离
-- 计划版本：先插 inactive → 再 flip active
-- AI **永不**改计划，只发结构化指标
-- 黑白极简 UI + 移动端 `pb-24`

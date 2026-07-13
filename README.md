@@ -67,6 +67,7 @@ npm run dev
 | `npm test` | 单元测试 |
 | `npm run db:generate` | 生成 Drizzle 迁移 |
 | `npm run db:migrate` | 执行迁移 |
+| `npm run db:push` | 直接 push schema |
 | `npm run db:seed` | 种子管理员 |
 
 ## Phase 进度
@@ -86,7 +87,23 @@ npm run dev
 - [x] 响应式周历 + 课表明细 + 版本历史
 - [x] Vitest 单元测试 + fast-check 属性测试
 
-### 关键训练 API
+### Phase 3
+- [x] 打卡表单（疲劳 1–5 / 疼痛 0–10 滑动）+ 今日训练列表
+- [x] 训练记录 CRUD（距离 / 时长 / RPE / 心率 / 疼痛 / 备注 / 幂等 ID）
+- [x] 智能调课引擎（5 条规则）+ 确认 / 忽略 / 撤销流程
+- [x] 周报 / 月报 / 趋势报告 + AI 评语（8s 超时 + 模板兜底）
+- [x] 三页 UI 全部落地（today / activity / insights）
+- [x] 引擎边界测试 + AI fallback 测试 + mutationId 幂等测试（80 tests pass）
+
+### Phase 4（进行中）
+- [ ] VDOT 引擎（ Daniels 公式 + 等价成绩 + 训练配速区间 + 负分割策略 ）
+- [ ] 比赛策略 API（计算 + 保存 + 列表 + 删除）
+- [ ] 跑鞋管理 CRUD + API（里程自动累加）
+- [ ] 力量训练记录 CRUD + API
+- [ ] /tools 页落地（跑鞋 / 力量 / 比赛策略三个入口）
+- [ ] Phase 4 测试 + 文档更新
+
+## 关键训练 API
 
 | 方法 | 路径 |
 |------|------|
@@ -99,5 +116,9 @@ npm run dev
 | GET  | `/api/v1/plans/current` |
 | POST | `/api/v1/plans/generate` |
 | GET  | `/api/v1/plans/:versionId` |
-
-迁移：`npm run db:migrate`（含 `0001_phase2_planning`）或开发期 `npm run db:push`。
+| GET/POST | `/api/v1/activities` |
+| GET/PUT/DELETE | `/api/v1/activities/:id` |
+| GET/POST | `/api/v1/check-ins` |
+| GET/POST | `/api/v1/reports/weekly` |
+| GET/POST | `/api/v1/reports/monthly` |
+| GET/POST | `/api/v1/reports/trends` |
