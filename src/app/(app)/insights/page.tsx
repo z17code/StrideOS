@@ -1,15 +1,4 @@
 import { requireOnboardedUser } from "@/lib/auth/onboarding-gate";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { WORKOUT_LABEL } from "@/lib/plans/types";
 import { InsightTabs } from "./insight-tabs";
 
 export const dynamic = "force-dynamic";
