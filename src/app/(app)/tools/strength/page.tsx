@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { StrengthExercise } from "@/lib/validators/strength";
-import { STRENGTH_TEMPLATES } from "@/lib/strength/service";
+import { STRENGTH_TEMPLATES } from "@/lib/strength/templates";
 
 interface Template {
   id: string;
