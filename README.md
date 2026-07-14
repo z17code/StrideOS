@@ -4,11 +4,15 @@
 
 ## 技术栈
 
-- Next.js App Router + TypeScript
-- Tailwind CSS + Radix UI + Lucide
-- Drizzle ORM + PostgreSQL（Supabase）
+- Next.js 15 (App Router) + TypeScript
+- Tailwind CSS v4 + Radix UI + Lucide
+- Drizzle ORM + PostgreSQL（本地开发 / 生产 Neon）
 - 自定义认证（scrypt + HttpOnly Cookie）
-- Vitest
+- Vitest（单元测试 + fast-check 属性测试）
+- PWA（`manifest.webmanifest` + service worker）
+- i18n（Cookie `strideos_locale`，基础版 zh-CN / en）
+
+更完整的交接说明见 [HANDOFF.md](./HANDOFF.md)。
 
 ## 本地开发
 
@@ -26,25 +30,38 @@ cp .env.example .env.local
 
 编辑 `.env.local`：
 
-- `DATABASE_URL`：PostgreSQL 连接串（本地或 Supabase）
-- `SESSION_SECRET`：≥32 字符随机串
-- `ADMIN_USERNAME` / `ADMIN_PASSWORD`：种子管理员账号
-- `AI_BASE_URL` / `AI_API_KEY` / `AI_MODEL`（可选，周报 AI 评语）
+| 变量 | 说明 |
+|------|------|
+| `DATABASE_URL` | PostgreSQL 连接串（本地或 Neon；Neon 需 `?sslmode=require`） |
+| `SESSION_SECRET` | ≥32 字符随机串 |
+| `ADMIN_USERNAME` / `ADMIN_PASSWORD` | `db:seed` 种子管理员 |
+| `AI_BASE_URL` / `AI_API_KEY` / `AI_MODEL` | 可选；周报 AI 评语（OpenAI-compatible） |
+| `STRENGTH_TEMPLATES_JSON` | 可选；覆盖默认力量模板 |
+
+生产示例：
+
+- `AI_BASE_URL=https://apihub.agnes-ai.com/v1`
+- `AI_MODEL=agnes-2.0-flash`
+- `AI_API_KEY` **只放 Vercel / 本地 `.env.local`，禁止提交仓库**
 
 ### 3. 数据库
 
 ```bash
-# 生成迁移 SQL（schema 变更后）
-npm run db:generate
-
-# 应用迁移
+# 推荐：应用正式迁移
 npm run db:migrate
 
-# 或开发期直接 push schema
+# 或开发期直接 push schema（与迁移可能不同步）
 npm run db:push
 
 # 创建管理员
 npm run db:seed
+```
+
+改 `src/db/schema.ts` 后：
+
+```bash
+npm run db:generate   # 生成迁移 SQL
+npm run db:migrate    # 执行迁移
 ```
 
 ### 4. 启动
@@ -64,11 +81,15 @@ npm run dev
 |------|------|
 | `npm run dev` | 开发服务器 |
 | `npm run build` | 生产构建 |
+| `npm run start` | 启动生产构建 |
+| `npm run lint` | Next.js lint |
 | `npm run typecheck` | TypeScript 检查 |
-| `npm test` | 单元测试 |
+| `npm test` | 单元测试（单次） |
+| `npm run test:watch` | Vitest watch |
 | `npm run db:generate` | 生成 Drizzle 迁移 |
 | `npm run db:migrate` | 执行迁移 |
 | `npm run db:push` | 直接 push schema |
+| `npm run db:studio` | Drizzle Studio |
 | `npm run db:seed` | 种子管理员 |
 
 ## Phase 进度
@@ -81,15 +102,16 @@ npm run dev
 - [x] 响应式导航（移动端底栏 / 桌面侧栏）
 
 ### Phase 2
-- [x] 入门问卷（Onboarding）与档案
+- [x] 入门问卷（Onboarding）与档案（**可跳过**）
 - [x] 比赛目标 CRUD（单活跃目标）
 - [x] 确定性 PlanEngine（8–24 周，阶段/递进/减量/间隔/长跑上限）
 - [x] 计划版本持久化与生成 API
-- [x] 响应式周历 + 课表明细 + 版本历史
+- [x] 响应式周历 + 课表明细 + 版本历史（重命名 / 激活 / 删除）
+- [x] 计划导出：iCal / Markdown / 打印转 PDF
 - [x] Vitest 单元测试 + fast-check 属性测试
 
 ### Phase 3
-- [x] 打卡表单（疲劳 1–5 / 疼痛 0–10 滑动）+ 今日训练列表
+- [x] 打卡表单（疲劳 1–5 / 疼痛 0–10）+ 今日训练列表
 - [x] 训练记录 CRUD（距离 / 时长 / RPE / 心率 / 疼痛 / 备注 / 幂等 ID）
 - [x] 智能调课引擎（5 条规则）+ 确认 / 忽略 / 撤销流程
 - [x] 周报 / 月报 / 趋势报告 + AI 评语（8s 超时 + 模板兜底）
@@ -99,30 +121,65 @@ npm run dev
 ### Phase 4
 - [x] VDOT 引擎（Daniels 公式 + 等价成绩 + 训练配速区间 + 负分割策略）
 - [x] 比赛策略 API（计算 + 保存 + 列表 + 删除）
-- [x] 跑鞋管理 CRUD + API（里程自动累加）
-- [x] 力量训练记录 CRUD + API（core/hips/calves/balance/mobility）
-- [x] /tools 页落地（跑鞋 / 力量 / 比赛策略三个入口）
+- [x] 跑鞋管理 CRUD + API（里程自动累加 + 退役）
+- [x] 力量训练：默认模板 + **自定义 exercises JSON** + CRUD
+- [x] 模板可通过 `STRENGTH_TEMPLATES_JSON` 覆盖
+- [x] `/tools` 页落地（跑鞋 / 力量 / 比赛策略）
 - [x] Phase 4 测试 + 文档更新
 
-## 关键训练 API
+### 平台能力
+- [x] 移动端 PWA（manifest + 轻量 service worker）
+- [x] 界面语言切换（导航 +「我的」页；Cookie `strideos_locale`）
+- [x] Client 组件禁止直接 import DB service（力量模板见 `src/lib/strength/templates.ts`）
+
+## 关键 API
+
+### 认证 / 账号
 
 | 方法 | 路径 |
 |------|------|
-| GET  | `/api/v1/onboarding/status` |
-| POST | `/api/v1/onboarding/complete` |
+| POST | `/api/v1/auth/register` |
+| POST | `/api/v1/auth/login` |
+| POST | `/api/v1/auth/logout` |
+| POST | `/api/v1/auth/reset-password` |
+| GET  | `/api/v1/me` |
+| POST | `/api/v1/me/locale` |
 | GET/PUT | `/api/v1/me/profile` |
-| GET/POST | `/api/v1/goals` |
-| PUT/DELETE | `/api/v1/goals/:id` |
-| GET  | `/api/v1/plans` |
-| GET  | `/api/v1/plans/current` |
-| POST | `/api/v1/plans/generate` |
-| GET  | `/api/v1/plans/:versionId` |
+
+### Onboarding / 目标 / 计划
+
+| 方法 | 路径 | 备注 |
+|------|------|------|
+| GET  | `/api/v1/onboarding/status` | |
+| POST | `/api/v1/onboarding/complete` | body 含 `skip: true` 可跳过 |
+| GET/POST | `/api/v1/goals` | |
+| PUT/DELETE | `/api/v1/goals/:id` | |
+| GET  | `/api/v1/plans` | |
+| GET  | `/api/v1/plans/current` | |
+| POST | `/api/v1/plans/generate` | |
+| GET/PATCH/DELETE | `/api/v1/plans/:versionId` | PATCH：`label` 等；POST 可激活 |
+| GET  | `/api/v1/plans/:versionId/export` | `?format=ics\|md\|pdf` |
+
+### 打卡 / 活动 / 调课 / 报告
+
+| 方法 | 路径 |
+|------|------|
+| GET/POST | `/api/v1/check-ins` |
 | GET/POST | `/api/v1/activities` |
 | GET/PUT/DELETE | `/api/v1/activities/:id` |
-| GET/POST | `/api/v1/check-ins` |
-| GET/POST | `/api/v1/reports/weekly` |
-| GET/POST | `/api/v1/reports/monthly` |
-| GET/POST | `/api/v1/reports/trends` |
+| GET  | `/api/v1/adjustments` |
+| POST | `/api/v1/adjustments/propose` |
+| PUT  | `/api/v1/adjustments/:id/confirm` |
+| PUT  | `/api/v1/adjustments/:id/reject` |
+| POST | `/api/v1/adjustments/:id/revert` |
+| GET  | `/api/v1/reports/weekly` |
+| GET  | `/api/v1/reports/monthly` |
+| GET  | `/api/v1/reports/trends` |
+
+### 工具（Phase 4）
+
+| 方法 | 路径 |
+|------|------|
 | GET/POST | `/api/v1/shoes` |
 | GET/PUT/DELETE | `/api/v1/shoes/:id` |
 | GET/POST | `/api/v1/strength` |
@@ -130,10 +187,45 @@ npm run dev
 | GET/POST | `/api/v1/strategies` |
 | GET/DELETE | `/api/v1/strategies/:id` |
 
-### Phase 4 API 备注
+### 管理员
+
+| 方法 | 路径 | 备注 |
+|------|------|------|
+| GET  | `/api/v1/admin/users` | |
+| PUT  | `/api/v1/admin/users/:id` | 启停等 |
+| GET/POST | `/api/v1/admin/invite-codes` | |
+| DELETE | `/api/v1/admin/invite-codes/:id` | |
+| POST | `/api/v1/admin/reset-token` | 生成重置令牌 |
+
+### API 备注
 
 - `POST /api/v1/strategies` body: `{ distanceType, targetTimeSec, label?, save? }`
   - `save` 缺省 / `false` → 纯计算（不写库）
   - `save: true` → 计算并持久化
 - `GET /api/v1/shoes?active=1` → 仅未退役跑鞋
 - `GET /api/v1/strength?templates=1` → 返回力量模板列表
+- `POST /api/v1/onboarding/complete` 传 `{ skip: true }` 跳过入门
+- `GET /api/v1/plans/:versionId/export?format=ics|md|pdf`
+- 计划版本：`PATCH` 改 label；`POST` 激活；`DELETE` 删除（不可删唯一活跃版时按业务错误返回）
+
+## 部署
+
+- **GitHub**：https://github.com/z17code/StrideOS
+- **Vercel**：`main` 推送后自动部署
+- 生产环境变量：`DATABASE_URL`、`SESSION_SECRET`、`ADMIN_*`、`AI_*`（可选）
+- 改 schema 后需对生产库执行 `npm run db:migrate`（或 `db:push`）；**Vercel 不会自动迁移**
+- Neon 免费版可能休眠，冷启动约 2–5 秒
+
+## 已知限制 / 后续
+
+- [ ] 跑步路线记录集成（GPX / 第三方）
+- [ ] 完整 i18n 覆盖所有页面（目前导航 + 我的）
+- [ ] 用户自助修改密码
+- PWA 为轻量壳缓存，不做离线写操作
+- 计划引擎为确定性算法，无 AI 参与生成
+
+## 测试
+
+```bash
+npm test
+```

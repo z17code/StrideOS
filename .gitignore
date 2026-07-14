@@ -7,3 +7,10 @@ coverage/
 *.log
 .DS_Store
 *.tsbuildinfo
+
+# Local tooling / scratch (do not commit)
+.claude/
+_write_files.py
+test-results.txt
+tsc-check.txt
+tsc-out.txt
