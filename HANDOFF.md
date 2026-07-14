@@ -160,7 +160,7 @@ npm run db:migrate
 - `drizzle/0002_phase4_strategy.sql` — `race_strategies`
 - `drizzle/0003_schema_alignment.sql` — 回写 db:push 期间的增量字段（onboarding skip、plan label、strength 自定义、activities text 等）
 
-> 历史库若已用 `db:push` 对齐，执行 `0003` 时语句多为幂等（`IF NOT EXISTS` / 条件改类型）。
+> 历史库若已用 `db:push` 对齐：`0000`–`0003` 均为幂等（`IF NOT EXISTS` / `duplicate_object` 捕获 / 条件改类型），可安全补跑 `db:migrate` 写入迁移历史。
 
 ---
 
