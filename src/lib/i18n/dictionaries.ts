@@ -59,7 +59,11 @@ const en = {
   },
 } as const;
 
-export type Dictionary = typeof zh;
+type DeepStringify<T> = {
+  [K in keyof T]: T[K] extends string ? string : DeepStringify<T[K]>;
+};
+
+export type Dictionary = DeepStringify<typeof zh>;
 
 const dictionaries: Record<Locale, Dictionary> = {
   "zh-CN": zh,
