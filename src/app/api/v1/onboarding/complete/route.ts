@@ -1,9 +1,5 @@
 import { jsonError, jsonOk, requireUser } from "@/lib/auth/guards";
-import {
-  completeOnboarding,
-  mapGoal,
-  mapProfile,
-} from "@/lib/plans/service";
+import { completeOnboarding, mapGoal, mapProfile, skipOnboarding } from "@/lib/plans/service";
 import { onboardingCompleteSchema } from "@/lib/validators/planning";
 
 export async function POST(request: Request) {
@@ -15,6 +11,16 @@ export async function POST(request: Request) {
     body = await request.json();
   } catch {
     return jsonError(400, "INVALID_JSON", "请求体必须是 JSON");
+  }
+
+  const skip = (body as Record<string, unknown>).skip === true;
+
+  if (skip) {
+    const profile = await skipOnboarding(auth.user.id);
+    return jsonOk({
+      skipped: true,
+      profile: mapProfile(profile),
+    });
   }
 
   const parsed = onboardingCompleteSchema.safeParse(body);
@@ -30,6 +36,7 @@ export async function POST(request: Request) {
   const { profile, goal } = await completeOnboarding(auth.user.id, parsed.data);
 
   return jsonOk({
+    skipped: false,
     profile: mapProfile(profile),
     goal: mapGoal(goal),
   });

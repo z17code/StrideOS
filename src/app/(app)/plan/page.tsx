@@ -1,10 +1,12 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import Link from "next/link";
-import { requireOnboardedUser } from "@/lib/auth/onboarding-gate";
+import { getCurrentUser } from "@/lib/auth/session";
 import { todayInShanghai, formatDurationSec } from "@/lib/datetime";
 import {
   getActiveGoal,
   getActivePlan,
+  getProfileForUser,
   listPlanVersions,
   mapGoal,
   mapPlanVersion,
@@ -17,13 +19,20 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { WeeklyCalendar, type PlanDto } from "@/components/training/weekly-calendar";
 import { GeneratePlanButton } from "@/components/training/generate-plan-button";
+import { VersionHistoryList } from "@/components/training/plan-version-history";
 
 export const dynamic = "force-dynamic";
 
 export default async function PlanPage() {
-  const { user } = await requireOnboardedUser();
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  if (user.role === "admin") redirect("/admin");
+
+  const profile = await getProfileForUser(user.id);
+  const showOnboardingPrompt = !profile?.onboardingCompletedAt;
   const active = await getActivePlan(user.id);
   const goal = await getActiveGoal(user.id);
   const versions = await listPlanVersions(user.id);
@@ -42,10 +51,22 @@ export default async function PlanPage() {
             周历课表 · 版本 v{planDto?.versionNumber ?? "—"}
           </p>
         </div>
-        <GeneratePlanButton
-          label={planDto ? "重新生成" : "生成计划"}
-          reason={planDto ? "regenerate" : "manual"}
-        />
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex gap-2">
+            {showOnboardingPrompt && (
+              <Link href="/onboarding">
+                <Button variant="outline">去填写问卷</Button>
+              </Link>
+            )}
+            <GeneratePlanButton
+              label={planDto ? "重新生成" : "生成计划"}
+              reason={planDto ? "regenerate" : "manual"}
+            />
+          </div>
+          {showOnboardingPrompt && (
+            <p className="text-xs text-muted-foreground">请先完成入门问卷以生成个性化计划</p>
+          )}
+        </div>
       </div>
 
       {goal ? (
@@ -104,25 +125,10 @@ export default async function PlanPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">版本历史</CardTitle>
-            <CardDescription>计划版本只读，重新生成会创建新版本</CardDescription>
+            <CardDescription>切换、重命名或删除历史版本</CardDescription>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-2 text-sm">
-              {versions.map((v) => (
-                <li key={v.id} className="flex items-center justify-between gap-2">
-                  <Link
-                    href={`/plan/history/${v.id}`}
-                    className="font-medium underline-offset-4 hover:underline"
-                  >
-                    v{v.versionNumber}
-                    {v.isActive ? "（当前）" : ""}
-                  </Link>
-                  <span className="text-muted-foreground">
-                    {v.startsOn} → {v.endsOn} · {v.createdReason}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <VersionHistoryList versions={versions} />
           </CardContent>
         </Card>
       )}

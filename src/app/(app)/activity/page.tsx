@@ -13,10 +13,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { workoutTypeEnum } from "@/lib/validators/activity";
+import { workoutTypeOptions } from "@/lib/validators/activity";
 import { WORKOUT_LABEL } from "@/lib/plans/types";
 
-const WORKOUT_TYPES = workoutTypeEnum.options;
+const WORKOUT_TYPES = workoutTypeOptions;
 
 function cn(...classes: (string | false | null | undefined)[]) {
   return classes.filter(Boolean).join(" ");
@@ -60,6 +60,7 @@ function CreateForm({
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showCustomType, setShowCustomType] = useState(false);
   const router = useRouter();
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
@@ -134,8 +135,15 @@ function CreateForm({
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">类型</Label>
               <select
-                value={form.workoutType}
-                onChange={(e) => set("workoutType", e.target.value)}
+                value={showCustomType ? "__custom__" : form.workoutType}
+                onChange={(e) => {
+                  if (e.target.value === "__custom__") {
+                    setShowCustomType(true);
+                  } else {
+                    setShowCustomType(false);
+                    set("workoutType", e.target.value);
+                  }
+                }}
                 className="flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 {WORKOUT_TYPES.map((t) => (
@@ -143,7 +151,18 @@ function CreateForm({
                     {WORKOUT_LABEL[t as keyof typeof WORKOUT_LABEL] ?? t}
                   </option>
                 ))}
+                <option value="__custom__">自定义…</option>
               </select>
+              {showCustomType && (
+                <Input
+                  type="text"
+                  placeholder="输入自定义类型名称"
+                  value={form.workoutType === "__custom__" ? "" : (form.workoutType as string)}
+                  onChange={(e) => set("workoutType", e.target.value)}
+                  className="mt-1"
+                  maxLength={40}
+                />
+              )}
             </div>
           </div>
 

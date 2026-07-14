@@ -15,7 +15,7 @@ export async function requireOnboardedUser() {
   const profile = await db.query.runnerProfiles.findFirst({
     where: eq(runnerProfiles.userId, user.id),
   });
-  if (!profile?.onboardingCompletedAt) {
+  if (!profile?.onboardingCompletedAt && !profile?.onboardingSkippedAt) {
     redirect("/onboarding");
   }
   return { user, profile };

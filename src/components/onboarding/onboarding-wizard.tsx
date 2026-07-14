@@ -48,6 +48,7 @@ export function OnboardingWizard() {
   const [step, setStep] = useState<Step>(0);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [skipping, setSkipping] = useState(false);
 
   // Step 0 — base
   const [weeklyDistance, setWeeklyDistance] = useState("30");
@@ -176,6 +177,29 @@ export function OnboardingWizard() {
       setError("网络错误，请稍后重试");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function skip() {
+    setError(null);
+    setSkipping(true);
+    try {
+      const res = await fetch("/api/v1/onboarding/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ skip: true }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data?.error?.message ?? "跳过失败");
+        return;
+      }
+      router.replace("/today");
+      router.refresh();
+    } catch {
+      setError("网络错误，请稍后重试");
+    } finally {
+      setSkipping(false);
     }
   }
 
@@ -449,22 +473,34 @@ export function OnboardingWizard() {
             </p>
           )}
 
-          <div className="flex justify-between gap-3 pt-2">
+          <div className="flex items-center justify-between gap-3 pt-2">
             <Button
               type="button"
               variant="outline"
               onClick={back}
-              disabled={step === 0 || loading}
+              disabled={step === 0 || loading || skipping}
             >
               上一步
             </Button>
-            <Button type="button" onClick={next} disabled={loading}>
-              {loading
-                ? "提交中…"
-                : step === 4
-                  ? "完成并生成计划"
-                  : "继续"}
-            </Button>
+            <div className="flex gap-2">
+              {step > 0 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={skip}
+                  disabled={loading || skipping}
+                >
+                  {skipping ? "处理中…" : "稍后填写"}
+                </Button>
+              )}
+              <Button type="button" onClick={next} disabled={loading || skipping}>
+                {loading
+                  ? "提交中…"
+                  : step === 4
+                    ? "完成并生成计划"
+                    : "继续"}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

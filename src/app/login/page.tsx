@@ -39,7 +39,7 @@ export default function LoginPage() {
       if (data.user?.role === "admin") {
         router.replace("/admin");
       } else {
-        router.replace("/today");
+        router.replace("/");
       }
       router.refresh();
     } catch {

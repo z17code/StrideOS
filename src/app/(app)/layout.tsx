@@ -24,7 +24,7 @@ export default async function AppLayout({
   const profile = await db.query.runnerProfiles.findFirst({
     where: eq(runnerProfiles.userId, user.id),
   });
-  const completed = Boolean(profile?.onboardingCompletedAt);
+  const completed = Boolean(profile?.onboardingCompletedAt || profile?.onboardingSkippedAt);
 
   return (
     <div className="flex min-h-dvh">

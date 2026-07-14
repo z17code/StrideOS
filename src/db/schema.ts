@@ -154,6 +154,9 @@ export const runnerProfiles = pgTable(
     onboardingCompletedAt: timestamp("onboarding_completed_at", {
       withTimezone: true,
     }),
+    onboardingSkippedAt: timestamp("onboarding_skipped_at", {
+      withTimezone: true,
+    }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -209,6 +212,7 @@ export const planVersions = pgTable(
     startsOn: date("starts_on").notNull(),
     endsOn: date("ends_on").notNull(),
     totalWeeks: integer("total_weeks").notNull(),
+    label: text("label"),
     warnings: jsonb("warnings").$type<string[]>().notNull().default([]),
     isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -288,7 +292,7 @@ export const activities = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     date: date("date").notNull(),
-    workoutType: workoutTypeEnum("workout_type").notNull(),
+    workoutType: text("workout_type").notNull(),
     distanceKm: real("distance_km"),
     durationMin: integer("duration_min"),
     actualRpe: integer("actual_rpe"),
@@ -366,7 +370,18 @@ export const strengthSessions = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     date: date("date").notNull(),
-    templateId: text("template_id").notNull(),
+    templateId: text("template_id"),
+    exercises: jsonb("exercises").$type<
+      Array<{
+        name: string;
+        sets?: number;
+        reps?: number;
+        weightKg?: number | null;
+        durationSec?: number | null;
+        note?: string | null;
+      }>
+    >(),
+    durationMin: integer("duration_min"),
     completed: boolean("completed").notNull().default(true),
     notes: text("notes"),
     createdAt: timestamp("created_at", { withTimezone: true })

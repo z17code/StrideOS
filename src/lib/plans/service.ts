@@ -66,6 +66,7 @@ export function mapProfile(p: RunnerProfile) {
     restrictions: p.restrictions,
     recentRace,
     onboardingCompleted: Boolean(p.onboardingCompletedAt),
+    onboardingSkippedAt: p.onboardingSkippedAt,
     onboardingCompletedAt: p.onboardingCompletedAt,
     updatedAt: p.updatedAt,
   };
@@ -176,6 +177,7 @@ export async function completeOnboarding(
           restrictions: data.profile.restrictions?.trim() || null,
           recentRaceTimes: toRecentRaceJson(data.profile.recentRace),
           onboardingCompletedAt: existing.onboardingCompletedAt ?? now,
+          onboardingSkippedAt: null,
           updatedAt: now,
         })
         .where(eq(runnerProfiles.userId, userId))
@@ -195,6 +197,7 @@ export async function completeOnboarding(
           restrictions: data.profile.restrictions?.trim() || null,
           recentRaceTimes: toRecentRaceJson(data.profile.recentRace),
           onboardingCompletedAt: now,
+          onboardingSkippedAt: null,
           updatedAt: now,
         })
         .returning();
@@ -242,6 +245,28 @@ export async function completeOnboarding(
 
     return { profile, goal };
   });
+}
+
+export async function skipOnboarding(userId: string) {
+  const now = new Date();
+  const existing = await getProfileForUser(userId);
+  if (existing) {
+    const [updated] = await db
+      .update(runnerProfiles)
+      .set({ onboardingSkippedAt: now, updatedAt: now })
+      .where(eq(runnerProfiles.userId, userId))
+      .returning();
+    return updated;
+  }
+  const [created] = await db
+    .insert(runnerProfiles)
+    .values({
+      userId,
+      onboardingSkippedAt: now,
+      updatedAt: now,
+    })
+    .returning();
+  return created;
 }
 
 export async function updateProfile(userId: string, data: Partial<ProfileFields>) {
@@ -399,6 +424,72 @@ export async function listPlanVersions(userId: string) {
     .from(planVersions)
     .where(eq(planVersions.userId, userId))
     .orderBy(desc(planVersions.versionNumber));
+}
+
+export async function patchPlanVersion(
+  userId: string,
+  versionId: string,
+  data: { label?: string | null },
+) {
+  const existing = await getPlanVersion(userId, versionId);
+  if (!existing) return null;
+  const [updated] = await db
+    .update(planVersions)
+    .set({
+      ...(data.label !== undefined ? { label: data.label } : {}),
+    })
+    .where(
+      and(eq(planVersions.id, versionId), eq(planVersions.userId, userId)),
+    )
+    .returning();
+  return updated;
+}
+
+export async function deletePlanVersion(userId: string, versionId: string) {
+  const existing = await getPlanVersion(userId, versionId);
+  if (!existing) return null;
+  const wasActive = existing.version.isActive;
+  await db
+    .delete(planVersions)
+    .where(
+      and(eq(planVersions.id, versionId), eq(planVersions.userId, userId)),
+    );
+  if (wasActive) {
+    const [next] = await db
+      .select({ id: planVersions.id })
+      .from(planVersions)
+      .where(eq(planVersions.userId, userId))
+      .orderBy(desc(planVersions.versionNumber))
+      .limit(1);
+    if (next) {
+      await db
+        .update(planVersions)
+        .set({ isActive: true })
+        .where(
+          and(eq(planVersions.id, next.id), eq(planVersions.userId, userId)),
+        );
+    }
+  }
+  return existing;
+}
+
+export async function activatePlanVersion(userId: string, versionId: string) {
+  return db.transaction(async (tx) => {
+    await tx
+      .update(planVersions)
+      .set({ isActive: false })
+      .where(
+        and(eq(planVersions.userId, userId), eq(planVersions.isActive, true)),
+      );
+    const [activated] = await tx
+      .update(planVersions)
+      .set({ isActive: true })
+      .where(
+        and(eq(planVersions.id, versionId), eq(planVersions.userId, userId)),
+      )
+      .returning();
+    return activated;
+  });
 }
 
 export async function getActivePlan(userId: string) {

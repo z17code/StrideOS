@@ -10,6 +10,7 @@ export async function GET() {
 
   return jsonOk({
     completed: Boolean(profile?.onboardingCompletedAt),
+    skipped: Boolean(profile?.onboardingSkippedAt),
     hasActiveGoal: Boolean(goal),
     profile: profile ? mapProfile(profile) : null,
   });

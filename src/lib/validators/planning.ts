@@ -80,6 +80,10 @@ export const generatePlanSchema = z.object({
   reason: z.string().min(1).max(200).optional().default("manual"),
 });
 
+export const updatePlanVersionSchema = z.object({
+  label: z.string().max(100).nullable().optional(),
+});
+
 export type ProfileFields = z.infer<typeof profileFieldsSchema>;
 export type GoalFields = z.infer<typeof goalFieldsSchema>;
 export type OnboardingCompleteInput = z.infer<typeof onboardingCompleteSchema>;

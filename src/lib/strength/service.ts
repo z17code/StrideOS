@@ -49,14 +49,16 @@ export function getTemplate(id: string) {
 }
 
 export function mapStrengthSession(s: StrengthSession) {
-  const template = getTemplate(s.templateId);
+  const template = s.templateId ? getTemplate(s.templateId) : null;
   return {
     id: s.id,
     date: s.date,
     templateId: s.templateId,
-    templateName: template?.name ?? s.templateId,
+    templateName: template?.name ?? (s.templateId ?? "自定义"),
     completed: s.completed,
     notes: s.notes,
+    exercises: s.exercises,
+    durationMin: s.durationMin,
     createdAt: s.createdAt,
   };
 }
@@ -93,9 +95,11 @@ export async function createStrengthSession(
     .values({
       userId,
       date: data.date,
-      templateId: data.templateId,
+      templateId: data.templateId ?? null,
       completed: data.completed ?? true,
       notes: data.notes ?? null,
+      exercises: data.exercises ?? null,
+      durationMin: data.durationMin ?? null,
     })
     .returning();
   return created;
@@ -115,6 +119,8 @@ export async function updateStrengthSession(
       ...(data.templateId !== undefined ? { templateId: data.templateId } : {}),
       ...(data.completed !== undefined ? { completed: data.completed } : {}),
       ...(data.notes !== undefined ? { notes: data.notes } : {}),
+      ...(data.exercises !== undefined ? { exercises: data.exercises } : {}),
+      ...(data.durationMin !== undefined ? { durationMin: data.durationMin } : {}),
     })
     .where(
       and(eq(strengthSessions.id, id), eq(strengthSessions.userId, userId)),

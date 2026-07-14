@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ClipboardCopy, Check } from "lucide-react";
 
 type Invite = {
   id: string;
@@ -24,6 +25,22 @@ export default function AdminInvitesPage() {
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<string[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!copiedId) return;
+    const t = setTimeout(() => setCopiedId(null), 2000);
+    return () => clearTimeout(t);
+  }, [copiedId]);
+
+  function maskCode(code: string) {
+    return "•".repeat(Math.min(code.length, 8));
+  }
+
+  async function copyCode(code: string, id?: string) {
+    await navigator.clipboard.writeText(code);
+    if (id) setCopiedId(id);
+  }
 
   const load = useCallback(async () => {
     setError(null);
@@ -111,9 +128,24 @@ export default function AdminInvitesPage() {
             <CardDescription>请妥善保管并分发给受邀用户</CardDescription>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-1 font-mono text-sm">
-              {created.map((c) => (
-                <li key={c}>{c}</li>
+            <ul className="space-y-1 text-sm">
+              {created.map((c, i) => (
+                <li key={c} className="flex items-center gap-2">
+                  <span className="font-mono">{maskCode(c)}</span>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7"
+                    onClick={() => void copyCode(c, `new-${i}`)}
+                  >
+                    {copiedId === `new-${i}` ? (
+                      <Check className="h-4 w-4 text-success" />
+                    ) : (
+                      <ClipboardCopy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </li>
               ))}
             </ul>
           </CardContent>
@@ -142,8 +174,25 @@ export default function AdminInvitesPage() {
                       key={c.id}
                       className="border-b border-border last:border-0"
                     >
-                      <td className="px-4 py-3 font-mono font-medium">
-                        {c.code}
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-medium">
+                            {maskCode(c.code)}
+                          </span>
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7"
+                            onClick={() => void copyCode(c.code, c.id)}
+                          >
+                            {copiedId === c.id ? (
+                              <Check className="h-4 w-4 text-success" />
+                            ) : (
+                              <ClipboardCopy className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
                       </td>
                       <td className="px-4 py-3">
                         {used ? (
