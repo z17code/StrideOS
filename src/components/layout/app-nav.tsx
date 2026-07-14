@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   Activity,
@@ -11,18 +12,41 @@ import {
   Wrench,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  DEFAULT_LOCALE,
+  LOCALE_COOKIE,
+  getDictionary,
+  isLocale,
+  type Locale,
+} from "@/lib/i18n/dictionaries";
 
-const navItems = [
-  { href: "/today", label: "今日", icon: Home },
-  { href: "/plan", label: "计划", icon: CalendarDays },
-  { href: "/activity", label: "记录", icon: Activity },
-  { href: "/insights", label: "洞察", icon: BarChart3 },
-  { href: "/tools", label: "工具", icon: Wrench },
-  { href: "/me", label: "我的", icon: Settings },
-];
+function readLocaleCookie(): Locale {
+  if (typeof document === "undefined") return DEFAULT_LOCALE;
+  const match = document.cookie
+    .split(";")
+    .map((s) => s.trim())
+    .find((s) => s.startsWith(`${LOCALE_COOKIE}=`));
+  const value = match?.split("=")[1];
+  return isLocale(value) ? value : DEFAULT_LOCALE;
+}
 
 export function AppNav() {
   const pathname = usePathname();
+  const [locale, setLocale] = useState<Locale>(DEFAULT_LOCALE);
+
+  useEffect(() => {
+    setLocale(readLocaleCookie());
+  }, [pathname]);
+
+  const t = getDictionary(locale);
+  const navItems = [
+    { href: "/today", label: t.nav.today, icon: Home },
+    { href: "/plan", label: t.nav.plan, icon: CalendarDays },
+    { href: "/activity", label: t.nav.activity, icon: Activity },
+    { href: "/insights", label: t.nav.insights, icon: BarChart3 },
+    { href: "/tools", label: t.nav.tools, icon: Wrench },
+    { href: "/me", label: t.nav.me, icon: Settings },
+  ];
 
   return (
     <>

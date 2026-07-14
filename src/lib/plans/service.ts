@@ -96,6 +96,7 @@ export function mapPlanVersion(
     startsOn: v.startsOn,
     endsOn: v.endsOn,
     totalWeeks: v.totalWeeks,
+    label: v.label,
     warnings: v.warnings,
     isActive: v.isActive,
     raceGoalId: v.raceGoalId,

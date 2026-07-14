@@ -3,7 +3,7 @@ import {
   createStrengthSession,
   listStrengthSessions,
   mapStrengthSession,
-  STRENGTH_TEMPLATES,
+  listStrengthTemplates,
 } from "@/lib/strength/service";
 import { createStrengthSchema } from "@/lib/validators/strength";
 
@@ -13,7 +13,7 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   if (url.searchParams.get("templates") === "1") {
-    return jsonOk({ templates: STRENGTH_TEMPLATES });
+    return jsonOk({ templates: listStrengthTemplates() });
   }
 
   const limit = Math.min(

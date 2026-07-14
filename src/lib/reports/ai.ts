@@ -25,7 +25,7 @@ export async function generateAiSummary(
   if (!isAiConfigured()) return null;
   const baseUrl = process.env.AI_BASE_URL!.replace(/\/$/, "");
   const apiKey = process.env.AI_API_KEY!;
-  const model = process.env.AI_MODEL?.trim() || "gpt-4o-mini";
+  const model = process.env.AI_MODEL?.trim() || "agnes-2.0-flash";
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
@@ -63,3 +63,4 @@ export async function generateAiSummary(
     clearTimeout(timer);
   }
 }
+

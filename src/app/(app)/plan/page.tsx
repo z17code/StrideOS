@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { WeeklyCalendar, type PlanDto } from "@/components/training/weekly-calendar";
 import { GeneratePlanButton } from "@/components/training/generate-plan-button";
 import { VersionHistoryList } from "@/components/training/plan-version-history";
+import { PlanExportButtons } from "@/components/training/plan-export-buttons";
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +53,7 @@ export default async function PlanPage() {
           </p>
         </div>
         <div className="flex flex-col items-end gap-2">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
             {showOnboardingPrompt && (
               <Link href="/onboarding">
                 <Button variant="outline">去填写问卷</Button>
@@ -63,6 +64,7 @@ export default async function PlanPage() {
               reason={planDto ? "regenerate" : "manual"}
             />
           </div>
+          {planDto && <PlanExportButtons versionId={planDto.id} />}
           {showOnboardingPrompt && (
             <p className="text-xs text-muted-foreground">请先完成入门问卷以生成个性化计划</p>
           )}

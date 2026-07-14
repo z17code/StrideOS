@@ -1,3 +1,11 @@
+export type StrengthTemplate = {
+  id: string;
+  name: string;
+  description: string;
+  durationMin: number;
+};
+
+/** Built-in defaults (safe for client components). */
 export const STRENGTH_TEMPLATES = [
   {
     id: "core" as const,
@@ -33,6 +41,42 @@ export const STRENGTH_TEMPLATES = [
 
 export type StrengthTemplateId = (typeof STRENGTH_TEMPLATES)[number]["id"];
 
+function parseEnvTemplates(): StrengthTemplate[] | null {
+  const raw = process.env.STRENGTH_TEMPLATES_JSON?.trim();
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed) || parsed.length === 0) return null;
+    const items: StrengthTemplate[] = [];
+    for (const item of parsed) {
+      if (!item || typeof item !== "object") return null;
+      const rec = item as Record<string, unknown>;
+      if (
+        typeof rec.id !== "string" ||
+        typeof rec.name !== "string" ||
+        typeof rec.description !== "string" ||
+        typeof rec.durationMin !== "number"
+      ) {
+        return null;
+      }
+      items.push({
+        id: rec.id,
+        name: rec.name,
+        description: rec.description,
+        durationMin: rec.durationMin,
+      });
+    }
+    return items;
+  } catch {
+    return null;
+  }
+}
+
+/** Server-side templates: env override or built-in defaults. */
+export function listStrengthTemplates(): StrengthTemplate[] {
+  return parseEnvTemplates() ?? STRENGTH_TEMPLATES.map((t) => ({ ...t }));
+}
+
 export function getTemplate(id: string) {
-  return STRENGTH_TEMPLATES.find((t) => t.id === id) ?? null;
+  return listStrengthTemplates().find((t) => t.id === id) ?? null;
 }

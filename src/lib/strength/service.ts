@@ -10,7 +10,7 @@ import type {
 } from "@/lib/validators/strength";
 import { getTemplate } from "./templates";
 
-export { STRENGTH_TEMPLATES, getTemplate, type StrengthTemplateId } from "./templates";
+export { STRENGTH_TEMPLATES, getTemplate, listStrengthTemplates, type StrengthTemplateId, type StrengthTemplate } from "./templates";
 
 export function mapStrengthSession(s: StrengthSession) {
   const template = s.templateId ? getTemplate(s.templateId) : null;
