@@ -12,6 +12,8 @@ import {
 export type ThemePreference = "system" | "light" | "dark";
 
 const STORAGE_KEY = "strideos_theme";
+const THEME_COLOR_LIGHT = "#f4f4f5";
+const THEME_COLOR_DARK = "#09090b";
 
 type ThemeContextValue = {
   preference: ThemePreference;
@@ -36,10 +38,22 @@ function resolvePreference(pref: ThemePreference): "light" | "dark" {
     : "light";
 }
 
+function syncThemeColor(resolved: "light" | "dark") {
+  const color = resolved === "dark" ? THEME_COLOR_DARK : THEME_COLOR_LIGHT;
+  let meta = document.querySelector('meta[name="theme-color"]');
+  if (!meta) {
+    meta = document.createElement("meta");
+    meta.setAttribute("name", "theme-color");
+    document.head.appendChild(meta);
+  }
+  meta.setAttribute("content", color);
+}
+
 function applyTheme(resolved: "light" | "dark") {
   const root = document.documentElement;
   root.classList.toggle("dark", resolved === "dark");
   root.style.colorScheme = resolved;
+  syncThemeColor(resolved);
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {

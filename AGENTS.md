@@ -71,6 +71,8 @@ android/                # Capacitor Android 工程
 11. **移动端 / APK UI 层次**：页面灰底 + 白/深卡片分离；底栏与顶栏用 `env(safe-area-inset-*)`（`safe-pb` / `safe-pt` + main `pb`）；viewport `viewportFit: "cover"`。底栏 active 用圆形高亮，保留 `touch-manipulation` / `active:`。
 
 12. **工具计算器（纯前端）**：成绩预测 `/tools/predict`（VDOT 锚定 + 各距离表现评估）、配速计算器 `/tools/pace`（里程 + 用时/配速/圈速互算）、BMI `/tools/bmi`；逻辑在 `src/lib/tools/*`。
+13. **注册确认密码**：`/register` 密码后有「确认密码」；不一致时前端拦截（「两次输入的密码不一致」），API 仍只收 `password`。
+14. **深色模式顶底栏**：移动端底栏/顶栏用实色 `bg-card`（勿用 `bg-background/95` 等 opacity，Tailwind v4 在部分手机浏览器会回退到浅色硬编码）；active 圆点用 `bg-muted`；`ThemeProvider` 同步 `meta[name=theme-color]`。
 
 ---
 

@@ -30,7 +30,7 @@ export default async function AppLayout({
     <div className="flex min-h-dvh">
       {completed && <AppNav />}
       <div className="flex min-h-dvh min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center border-b border-border/80 bg-background/90 px-4 backdrop-blur-md safe-pt md:px-6">
+        <header className="sticky top-0 z-30 flex h-14 items-center border-b border-border bg-card px-4 safe-pt md:px-6">
           <span className="text-sm font-semibold tracking-tight md:hidden">
             StrideOS
           </span>

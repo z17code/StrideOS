@@ -80,8 +80,8 @@ export function AppNav() {
         </nav>
       </aside>
 
-      {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-background/95 backdrop-blur-md safe-pb md:hidden">
+      {/* Mobile bottom nav — solid bg-card so dark mode never falls back to light opacity mix */}
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card safe-pb md:hidden">
         <ul className="grid grid-cols-6 px-1 pt-1">
           {navItems.map(({ href, label, icon: Icon }) => {
             const active =
@@ -100,7 +100,7 @@ export function AppNav() {
                   <span
                     className={cn(
                       "flex h-7 w-7 items-center justify-center rounded-full transition-colors",
-                      active && "bg-primary/10",
+                      active && "bg-muted",
                     )}
                   >
                     <Icon

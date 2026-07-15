@@ -20,7 +20,7 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-dvh">
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-border bg-background/95 px-4 backdrop-blur md:px-6">
+      <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-border bg-card px-4 md:px-6">
         <Link href="/admin" className="text-sm font-semibold tracking-tight">
           StrideOS Admin
         </Link>

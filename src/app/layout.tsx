@@ -39,7 +39,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const locale = await getRequestLocale();
-  const themeBootScript = `(function(){try{var k='strideos_theme';var v=localStorage.getItem(k);var d=v==='dark'||(v!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);var r=document.documentElement;r.classList.toggle('dark',d);r.style.colorScheme=d?'dark':'light';}catch(e){}})();`;
+  const themeBootScript = `(function(){try{var k='strideos_theme';var v=localStorage.getItem(k);var d=v==='dark'||(v!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);var r=document.documentElement;r.classList.toggle('dark',d);r.style.colorScheme=d?'dark':'light';var c=d?'#09090b':'#f4f4f5';var m=document.querySelector('meta[name="theme-color"]');if(!m){m=document.createElement('meta');m.setAttribute('name','theme-color');document.head.appendChild(m);}m.setAttribute('content',c);}catch(e){}})();`;
 
   return (
     <html lang={locale} suppressHydrationWarning>
