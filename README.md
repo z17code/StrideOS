@@ -3,6 +3,8 @@
 面向大众进阶跑者的智能训练驾驶舱（邀请制 MVP）。
 
 > **文档入口**：人类/运维看 [HANDOFF.md](./HANDOFF.md)；AI Agent 先看 [AGENTS.md](./AGENTS.md)。
+>
+> **文档维护**：重大行为 / schema / API 变更时，须同步更新 `AGENTS.md` §4 与 `HANDOFF.md`（见两文内「文档维护约定」），不要只改代码。
 
 
 ## 技术栈
