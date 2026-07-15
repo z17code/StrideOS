@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireOnboardedUser } from "@/lib/auth/onboarding-gate";
 import { LogoutButton } from "@/components/layout/logout-button";
 import { LocaleSwitcher } from "@/components/locale-switcher";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 import { getRequestDictionary } from "@/lib/i18n/server";
 import {
   Card,
@@ -57,7 +58,7 @@ export default async function MePage() {
           <CardTitle>{t.me.preferences}</CardTitle>
           <CardDescription>{t.me.preferencesHint}</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-5">
           <LocaleSwitcher
             initialLocale={locale}
             labels={{
@@ -67,6 +68,27 @@ export default async function MePage() {
               saved: t.common.saved,
             }}
           />
+          <ThemeSwitcher
+            labels={{
+              appearance: t.me.appearance,
+              system: t.me.themeSystem,
+              light: t.me.themeLight,
+              dark: t.me.themeDark,
+            }}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t.me.help}</CardTitle>
+          <CardDescription>{t.me.helpHint}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between gap-3 text-sm">
+            <span className="text-muted-foreground">{t.me.wechat}</span>
+            <span className="font-medium select-all">z17code</span>
+          </div>
         </CardContent>
       </Card>
     </div>

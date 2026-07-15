@@ -147,6 +147,7 @@ function CheckinSection({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          date: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' }),
           fatigueLevel: fatigue,
           painLevel: pain,
           notes: notes || null,
@@ -481,7 +482,7 @@ export default function TodayPage() {
     loaded.current = true;
     setLoading(true);
     try {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
       const [checkinRes, actRes, adjRes] = await Promise.all([
         fetch(`/api/v1/check-ins?date=${today}`),
         fetch("/api/v1/activities?limit=5"),

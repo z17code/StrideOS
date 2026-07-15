@@ -3,13 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export function GeneratePlanButton({
   label = "生成计划",
   reason = "manual",
+  className,
 }: {
   label?: string;
   reason?: string;
+  className?: string;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -38,8 +41,8 @@ export function GeneratePlanButton({
   }
 
   return (
-    <div className="space-y-2">
-      <Button type="button" onClick={onClick} disabled={loading}>
+    <div className={cn("space-y-2", className)}>
+      <Button type="button" onClick={onClick} disabled={loading} className="w-full">
         {loading ? "生成中…" : label}
       </Button>
       {error && (

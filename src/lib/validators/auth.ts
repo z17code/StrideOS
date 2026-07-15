@@ -34,6 +34,8 @@ export const createInviteCodeSchema = z.object({
 
 export const adminUpdateUserSchema = z.object({
   isActive: z.boolean().optional(),
+  username: usernameSchema.optional(),
+  adminNote: z.string().max(200).optional().nullable(),
 });
 
 export const adminCreateResetTokenSchema = z.object({

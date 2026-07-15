@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -14,6 +15,7 @@ type AdminUser = {
   id: string;
   username: string;
   email: string | null;
+  adminNote: string | null;
   role: string;
   isActive: boolean;
   createdAt: string;
@@ -24,6 +26,9 @@ export default function AdminUsersPage() {
   const [error, setError] = useState<string | null>(null);
   const [resetToken, setResetToken] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editUsername, setEditUsername] = useState("");
+  const [editNote, setEditNote] = useState("");
 
   const load = useCallback(async () => {
     setError(null);
@@ -39,6 +44,46 @@ export default function AdminUsersPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  function startEdit(user: AdminUser) {
+    setEditingId(user.id);
+    setEditUsername(user.username);
+    setEditNote(user.adminNote ?? "");
+    setError(null);
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setEditUsername("");
+    setEditNote("");
+  }
+
+  async function saveEdit(user: AdminUser) {
+    setBusyId(user.id);
+    setError(null);
+    try {
+      const body: Record<string, unknown> = {
+        adminNote: editNote.trim() ? editNote.trim() : null,
+      };
+      if (editUsername.trim() && editUsername.trim() !== user.username) {
+        body.username = editUsername.trim();
+      }
+      const res = await fetch(`/api/v1/admin/users/${user.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data?.error?.message ?? "保存失败");
+        return;
+      }
+      cancelEdit();
+      await load();
+    } finally {
+      setBusyId(null);
+    }
+  }
 
   async function toggleActive(user: AdminUser) {
     setBusyId(user.id);
@@ -88,7 +133,7 @@ export default function AdminUsersPage() {
       <div>
         <h1 className="text-xl font-semibold tracking-tight">用户管理</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          停用账号将立即清除其会话
+          可备注识别用户、修改用户名；停用账号将立即清除其会话
         </p>
       </div>
 
@@ -119,53 +164,115 @@ export default function AdminUsersPage() {
               <thead className="border-b border-border bg-muted/50 text-muted-foreground">
                 <tr>
                   <th className="px-4 py-3 font-medium">用户名</th>
+                  <th className="px-4 py-3 font-medium">备注</th>
                   <th className="px-4 py-3 font-medium">角色</th>
                   <th className="px-4 py-3 font-medium">状态</th>
                   <th className="px-4 py-3 font-medium">操作</th>
                 </tr>
               </thead>
               <tbody>
-                {users.map((u) => (
-                  <tr key={u.id} className="border-b border-border last:border-0">
-                    <td className="px-4 py-3 font-medium">{u.username}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{u.role}</td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={
-                          u.isActive ? "text-success" : "text-destructive"
-                        }
-                      >
-                        {u.isActive ? "正常" : "已停用"}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-2">
-                        {u.role !== "admin" && (
+                {users.map((u) => {
+                  const isEditing = editingId === u.id;
+                  return (
+                    <tr
+                      key={u.id}
+                      className="border-b border-border last:border-0 align-top"
+                    >
+                      <td className="px-4 py-3">
+                        {isEditing ? (
+                          <Input
+                            value={editUsername}
+                            onChange={(e) => setEditUsername(e.target.value)}
+                            className="h-9 min-w-28"
+                            aria-label="用户名"
+                          />
+                        ) : (
+                          <span className="font-medium">{u.username}</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {isEditing ? (
+                          <Input
+                            value={editNote}
+                            onChange={(e) => setEditNote(e.target.value)}
+                            placeholder="例如：张三 / 同事"
+                            className="h-9 min-w-36"
+                            maxLength={200}
+                            aria-label="用户备注"
+                          />
+                        ) : (
+                          <span className="text-muted-foreground">
+                            {u.adminNote?.trim() ? u.adminNote : "—"}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">{u.role}</td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={
+                            u.isActive ? "text-success" : "text-destructive"
+                          }
+                        >
+                          {u.isActive ? "正常" : "已停用"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap gap-2">
+                          {isEditing ? (
+                            <>
+                              <Button
+                                size="sm"
+                                disabled={busyId === u.id}
+                                onClick={() => void saveEdit(u)}
+                              >
+                                保存
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                disabled={busyId === u.id}
+                                onClick={cancelEdit}
+                              >
+                                取消
+                              </Button>
+                            </>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={busyId === u.id}
+                              onClick={() => startEdit(u)}
+                            >
+                              编辑
+                            </Button>
+                          )}
+                          {u.role !== "admin" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={busyId === u.id || isEditing}
+                              onClick={() => void toggleActive(u)}
+                            >
+                              {u.isActive ? "停用" : "启用"}
+                            </Button>
+                          )}
                           <Button
                             size="sm"
-                            variant="outline"
-                            disabled={busyId === u.id}
-                            onClick={() => void toggleActive(u)}
+                            variant="secondary"
+                            disabled={busyId === u.id || isEditing}
+                            onClick={() => void createResetToken(u)}
                           >
-                            {u.isActive ? "停用" : "启用"}
+                            重置令牌
                           </Button>
-                        )}
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          disabled={busyId === u.id}
-                          onClick={() => void createResetToken(u)}
-                        >
-                          重置令牌
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
                 {users.length === 0 && (
                   <tr>
                     <td
-                      colSpan={4}
+                      colSpan={5}
                       className="px-4 py-8 text-center text-muted-foreground"
                     >
                       暂无用户

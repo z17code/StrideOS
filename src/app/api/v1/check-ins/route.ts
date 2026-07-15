@@ -6,6 +6,7 @@ import {
   upsertCheckin,
 } from "@/lib/checkins/service";
 import { checkinSchema } from "@/lib/validators/checkin";
+import { todayInShanghai } from "@/lib/datetime";
 
 export async function GET(request: Request) {
   const auth = await requireUser();
@@ -33,7 +34,16 @@ export async function POST(request: Request) {
     return jsonError(400, "INVALID_JSON", "请求体必须是 JSON");
   }
 
-  const parsed = checkinSchema.safeParse(body);
+  const payload =
+    body && typeof body === "object" && !Array.isArray(body)
+      ? {
+          ...(body as Record<string, unknown>),
+          date:
+            (body as Record<string, unknown>).date ?? todayInShanghai(),
+        }
+      : body;
+
+  const parsed = checkinSchema.safeParse(payload);
   if (!parsed.success) {
     return jsonError(
       400,

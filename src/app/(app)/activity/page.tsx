@@ -39,7 +39,7 @@ interface ActivityData {
 }
 
 const EMPTY_FORM = {
-  date: new Date().toISOString().slice(0, 10),
+  date: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' }),
   workoutType: "easy" as string,
   distanceKm: "" as string | number,
   durationMin: "" as string | number,

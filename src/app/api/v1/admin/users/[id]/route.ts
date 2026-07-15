@@ -38,17 +38,33 @@ export async function PUT(request: Request, { params }: Params) {
     return jsonError(404, "NOT_FOUND", "用户不存在");
   }
 
+  if (parsed.data.username && parsed.data.username !== target.username) {
+    const taken = await db.query.users.findFirst({
+      where: eq(users.username, parsed.data.username),
+    });
+    if (taken) {
+      return jsonError(409, "USERNAME_TAKEN", "用户名已被占用");
+    }
+  }
+
   const [updated] = await db
     .update(users)
     .set({
       ...(parsed.data.isActive !== undefined
         ? { isActive: parsed.data.isActive }
         : {}),
+      ...(parsed.data.username !== undefined
+        ? { username: parsed.data.username }
+        : {}),
+      ...(parsed.data.adminNote !== undefined
+        ? { adminNote: parsed.data.adminNote }
+        : {}),
     })
     .where(eq(users.id, id))
     .returning({
       id: users.id,
       username: users.username,
+      adminNote: users.adminNote,
       role: users.role,
       isActive: users.isActive,
     });

@@ -27,7 +27,14 @@ const zh = {
     weeklyDistance: "近 6 周跑量",
     redoOnboarding: "重新填写入门信息",
     preferences: "偏好",
-    preferencesHint: "界面语言偏好会保存在本机 Cookie",
+    preferencesHint: "语言与外观偏好会保存在本机",
+    appearance: "外观",
+    themeSystem: "跟随系统",
+    themeLight: "浅色",
+    themeDark: "深色",
+    help: "帮助与反馈",
+    helpHint: "使用问题或建议可添加微信联系",
+    wechat: "微信号",
   },
 } as const;
 
@@ -55,7 +62,14 @@ const en = {
     weeklyDistance: "Last 6 weeks mileage",
     redoOnboarding: "Redo onboarding",
     preferences: "Preferences",
-    preferencesHint: "Language preference is stored in a browser cookie",
+    preferencesHint: "Language and appearance preferences are stored on this device",
+    appearance: "Appearance",
+    themeSystem: "System",
+    themeLight: "Light",
+    themeDark: "Dark",
+    help: "Help & feedback",
+    helpHint: "Add WeChat for questions or suggestions",
+    wechat: "WeChat",
   },
 } as const;
 

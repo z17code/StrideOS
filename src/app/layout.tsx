@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { PwaRegister } from "@/components/pwa-register";
+import { ThemeProvider } from "@/components/theme-provider";
 import { getRequestLocale } from "@/lib/i18n/server";
 
 export const metadata: Metadata = {
@@ -34,11 +35,18 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const locale = await getRequestLocale();
+  const themeBootScript = `(function(){try{var k='strideos_theme';var v=localStorage.getItem(k);var d=v==='dark'||(v!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);var r=document.documentElement;r.classList.toggle('dark',d);r.style.colorScheme=d?'dark':'light';}catch(e){}})();`;
+
   return (
-    <html lang={locale}>
+    <html lang={locale} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+      </head>
       <body className="min-h-dvh bg-background text-foreground">
-        {children}
-        <PwaRegister />
+        <ThemeProvider>
+          {children}
+          <PwaRegister />
+        </ThemeProvider>
       </body>
     </html>
   );

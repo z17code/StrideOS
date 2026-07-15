@@ -13,6 +13,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import {
+  DurationFields,
+  parseHmsToSec,
+} from "@/components/ui/duration-fields";
 
 const WEEKDAYS = [
   { value: 1, label: "一" },
@@ -32,17 +36,6 @@ const DISTANCES = [
 
 type Step = 0 | 1 | 2 | 3 | 4;
 
-function parseTimeToSec(value: string): number | null {
-  const v = value.trim();
-  if (!v) return null;
-  const parts = v.split(":").map((p) => Number(p));
-  if (parts.some((n) => !Number.isFinite(n) || n < 0)) return null;
-  if (parts.length === 2) return Math.round(parts[0]! * 60 + parts[1]!);
-  if (parts.length === 3)
-    return Math.round(parts[0]! * 3600 + parts[1]! * 60 + parts[2]!);
-  return null;
-}
-
 export function OnboardingWizard() {
   const router = useRouter();
   const [step, setStep] = useState<Step>(0);
@@ -58,7 +51,9 @@ export function OnboardingWizard() {
   // Step 1 — recent race
   const [hasRace, setHasRace] = useState(false);
   const [raceDistKm, setRaceDistKm] = useState("10");
-  const [raceTime, setRaceTime] = useState("50:00");
+  const [raceH, setRaceH] = useState("0");
+  const [raceM, setRaceM] = useState("50");
+  const [raceS, setRaceS] = useState("0");
   const [raceDate, setRaceDate] = useState("");
 
   // Step 2 — schedule
@@ -73,7 +68,9 @@ export function OnboardingWizard() {
   const [distanceType, setDistanceType] =
     useState<"10k" | "half" | "full">("half");
   const [goalRaceDate, setGoalRaceDate] = useState("");
-  const [goalTime, setGoalTime] = useState("");
+  const [goalH, setGoalH] = useState("");
+  const [goalM, setGoalM] = useState("");
+  const [goalS, setGoalS] = useState("");
   const [completionOnly, setCompletionOnly] = useState(false);
 
   const progress = useMemo(() => ((step + 1) / 5) * 100, [step]);
@@ -98,7 +95,7 @@ export function OnboardingWizard() {
     }
     if (step === 1 && hasRace) {
       if (!raceDate) return "请填写基准比赛日期";
-      if (!parseTimeToSec(raceTime)) return "成绩格式为 mm:ss 或 h:mm:ss";
+      if (!parseHmsToSec(raceH, raceM, raceS)) return "请填写有效成绩（时/分/秒）";
     }
     if (step === 2) {
       if (trainableDays.length < 3) return "请至少选择 3 个可训练日";
@@ -106,8 +103,8 @@ export function OnboardingWizard() {
     }
     if (step === 4) {
       if (!goalRaceDate) return "请选择比赛日期";
-      if (!completionOnly && !parseTimeToSec(goalTime))
-        return "目标成绩格式为 mm:ss 或 h:mm:ss（或勾选仅完赛）";
+      if (!completionOnly && !parseHmsToSec(goalH, goalM, goalS))
+        return "请填写有效目标成绩（时/分/秒），或勾选仅完赛";
     }
     return null;
   }
@@ -125,7 +122,7 @@ export function OnboardingWizard() {
         hasRace && raceDate
           ? {
               distanceKm: Number(raceDistKm),
-              timeSec: parseTimeToSec(raceTime)!,
+              timeSec: parseHmsToSec(raceH, raceM, raceS)!,
               raceDate,
             }
           : null;
@@ -144,7 +141,7 @@ export function OnboardingWizard() {
         goal: {
           distanceType,
           raceDate: goalRaceDate,
-          targetTime: completionOnly ? null : parseTimeToSec(goalTime),
+          targetTime: completionOnly ? null : parseHmsToSec(goalH, goalM, goalS),
         },
       };
 
@@ -317,12 +314,15 @@ export function OnboardingWizard() {
                       onChange={(e) => setRaceDistKm(e.target.value)}
                     />
                   </Field>
-                  <Field label="成绩 (h:mm:ss)" id="rt">
-                    <Input
-                      id="rt"
-                      value={raceTime}
-                      onChange={(e) => setRaceTime(e.target.value)}
-                      placeholder="50:00"
+                  <Field label="成绩" id="rt">
+                    <DurationFields
+                      idPrefix="rt"
+                      hours={raceH}
+                      minutes={raceM}
+                      seconds={raceS}
+                      onHoursChange={setRaceH}
+                      onMinutesChange={setRaceM}
+                      onSecondsChange={setRaceS}
                     />
                   </Field>
                   <Field label="日期" id="rdate">
@@ -455,12 +455,15 @@ export function OnboardingWizard() {
                 仅完赛，不设目标成绩
               </label>
               {!completionOnly && (
-                <Field label="目标成绩 (h:mm:ss)" id="gtime">
-                  <Input
-                    id="gtime"
-                    value={goalTime}
-                    onChange={(e) => setGoalTime(e.target.value)}
-                    placeholder="1:45:00"
+                <Field label="目标成绩" id="gtime">
+                  <DurationFields
+                    idPrefix="gtime"
+                    hours={goalH}
+                    minutes={goalM}
+                    seconds={goalS}
+                    onHoursChange={setGoalH}
+                    onMinutesChange={setGoalM}
+                    onSecondsChange={setGoalS}
                   />
                 </Field>
               )}

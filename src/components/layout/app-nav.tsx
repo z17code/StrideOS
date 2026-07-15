@@ -91,13 +91,13 @@ export function AppNav() {
                 <Link
                   href={href}
                   className={cn(
-                    "flex flex-col items-center gap-0.5 py-2 text-[10px]",
+                    "flex flex-col items-center gap-0.5 py-2 text-[10px] touch-manipulation select-none transition-transform active:scale-95 active:opacity-70 active:bg-muted/60 rounded-md",
                     active
                       ? "text-foreground"
                       : "text-muted-foreground",
                   )}
                 >
-                  <Icon className={cn("h-5 w-5", active && "stroke-[2.5]")} />
+                  <Icon className={cn("h-5 w-5 transition-transform", active && "stroke-[2.5]")} />
                   {label}
                 </Link>
               </li>

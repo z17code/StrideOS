@@ -99,8 +99,14 @@ export function WeeklyCalendar({
   const phase = (plan.workouts.find((w) => w.scheduledDate >= weekStart && w.scheduledDate <= days[6]!)
     ?.phase ?? "base") as PlanPhase;
 
+  const minWeek = startOfMondayWeek(plan.startsOn);
+  const maxWeek = startOfMondayWeek(plan.endsOn);
+  const canGoPrev = weekStart > minWeek;
+  const canGoNext = weekStart < maxWeek;
+
   function go(delta: number) {
     const next = addDays(weekStart, delta * 7);
+    if (next < minWeek || next > maxWeek) return;
     router.replace(`/plan?week=${next}`);
   }
 
@@ -116,15 +122,17 @@ export function WeeklyCalendar({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            size="icon"
-            variant="outline"
-            onClick={() => go(-1)}
-            aria-label="上一周"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
+          {canGoPrev && (
+            <Button
+              type="button"
+              size="icon"
+              variant="outline"
+              onClick={() => go(-1)}
+              aria-label="上一周"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          )}
           <Button
             type="button"
             size="sm"
@@ -135,15 +143,17 @@ export function WeeklyCalendar({
           >
             本周
           </Button>
-          <Button
-            type="button"
-            size="icon"
-            variant="outline"
-            onClick={() => go(1)}
-            aria-label="下一周"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+          {canGoNext && (
+            <Button
+              type="button"
+              size="icon"
+              variant="outline"
+              onClick={() => go(1)}
+              aria-label="下一周"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
 

@@ -45,30 +45,33 @@ export default async function PlanPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="space-y-3">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">计划</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             周历课表 · 版本 v{planDto?.versionNumber ?? "—"}
           </p>
         </div>
-        <div className="flex flex-col items-end gap-2">
-          <div className="flex flex-wrap justify-end gap-2">
-            {showOnboardingPrompt && (
-              <Link href="/onboarding">
-                <Button variant="outline">去填写问卷</Button>
-              </Link>
-            )}
-            <GeneratePlanButton
-              label={planDto ? "重新生成" : "生成计划"}
-              reason={planDto ? "regenerate" : "manual"}
-            />
-          </div>
-          {planDto && <PlanExportButtons versionId={planDto.id} />}
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-start">
           {showOnboardingPrompt && (
-            <p className="text-xs text-muted-foreground">请先完成入门问卷以生成个性化计划</p>
+            <Link href="/onboarding" className="block">
+              <Button variant="outline" className="w-full sm:w-auto">
+                去填写问卷
+              </Button>
+            </Link>
           )}
+          <GeneratePlanButton
+            label={planDto ? "重新生成" : "生成计划"}
+            reason={planDto ? "regenerate" : "manual"}
+            className="min-w-0"
+          />
+          {planDto && <PlanExportButtons versionId={planDto.id} />}
         </div>
+        {showOnboardingPrompt && (
+          <p className="text-xs text-muted-foreground">
+            请先完成入门问卷以生成个性化计划
+          </p>
+        )}
       </div>
 
       {goal ? (
