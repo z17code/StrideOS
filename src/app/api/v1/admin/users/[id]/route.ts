@@ -2,10 +2,16 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import {
-  destroyAllUserSessions,
-} from "@/lib/auth/session";
+  isDeleteAccountError,
+  permanentlyDeleteUser,
+} from "@/lib/auth/delete-account";
+import { destroyAllUserSessions } from "@/lib/auth/session";
 import { jsonError, jsonOk, requireAdmin } from "@/lib/auth/guards";
-import { adminUpdateUserSchema } from "@/lib/validators/auth";
+import { assertSameOrigin, readJsonBody } from "@/lib/security/request";
+import {
+  adminDeleteUserSchema,
+  adminUpdateUserSchema,
+} from "@/lib/validators/auth";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -74,4 +80,51 @@ export async function PUT(request: Request, { params }: Params) {
   }
 
   return jsonOk({ user: updated });
+}
+
+/** Permanently delete a user and all related data (admin). */
+export async function DELETE(request: Request, { params }: Params) {
+  const originCheck = assertSameOrigin(request);
+  if (!originCheck.ok) {
+    return jsonError(originCheck.status, originCheck.code, originCheck.message);
+  }
+
+  const auth = await requireAdmin();
+  if (auth.error) return auth.error;
+
+  const { id } = await params;
+
+  const bodyResult = await readJsonBody(request);
+  if (!bodyResult.ok) {
+    return jsonError(bodyResult.status, bodyResult.code, bodyResult.message);
+  }
+
+  const parsed = adminDeleteUserSchema.safeParse(bodyResult.data);
+  if (!parsed.success) {
+    return jsonError(
+      400,
+      "VALIDATION_ERROR",
+      "请完整输入确认文案后再注销",
+      parsed.error.flatten(),
+    );
+  }
+
+  try {
+    const result = await permanentlyDeleteUser(id, {
+      actingAdminId: auth.user.id,
+    });
+    return jsonOk({ ok: true, deletedUsername: result.deletedUsername });
+  } catch (err) {
+    if (isDeleteAccountError(err)) {
+      const status =
+        err.code === "NOT_FOUND"
+          ? 404
+          : err.code === "LAST_ADMIN" || err.code === "CANNOT_DELETE_SELF"
+            ? 409
+            : 400;
+      return jsonError(status, err.code, err.message);
+    }
+    console.error("[admin users DELETE] unexpected", err);
+    return jsonError(500, "INTERNAL_ERROR", "注销失败，请稍后重试");
+  }
 }

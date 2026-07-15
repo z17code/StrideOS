@@ -85,6 +85,13 @@ android/                # Capacitor Android 工程
    - 安全响应头：`next.config.mjs`（CSP / HSTS / X-Frame-Options DENY / nosniff / Referrer-Policy / Permissions-Policy）；`poweredByHeader: false`。
    - 逻辑在 `src/lib/security/*`；改限流阈值改 `rate-limit.ts` 的 policy 常量。
 
+
+16. **注销账号（永久删除）**：
+    - 用户「我的」页可自助注销：须完整输入确认文案 `确认注销并永久删除全部数据`（长文案防误触）；`DELETE /api/v1/me`。
+    - 管理员用户管理可注销任意用户：确认文案 `确认注销该用户并永久删除全部数据`；`DELETE /api/v1/admin/users/:id`（body 含 confirmation）。
+    - 服务：`permanentlyDeleteUser`（`src/lib/auth/delete-account.ts`）— 先删 `plan_versions`（因 `race_goal_id` RESTRICT），再删 `users`（其余表 cascade）；管理员创建的邀请码会改派给其他管理员。
+    - 禁止：管理端注销自己；注销系统中**唯一**管理员。停用（`isActive`）≠ 注销。
+
 ---
 
 ## 5. 认证与角色
@@ -164,6 +171,6 @@ npm run cap:open      # Android Studio 打开工程
 2. `HANDOFF.md` 日期与相关 Phase / API / 迁移表是否对齐  
 3. 若有新迁移：`drizzle/` + journal + HANDOFF 迁移说明  
 
-*最后文档维护提醒写入：2026-07-15（「我的」页移除 GitHub Releases 外链；APK 仅站点下载）*
+*最后文档维护提醒写入：2026-07-15（账号永久注销：我的 + 管理端）*
 
 

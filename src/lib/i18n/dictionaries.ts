@@ -38,7 +38,19 @@ const zh = {
     appDownload: "安装 Android 应用",
     appDownloadHint: "下载 APK 安装包，在手机上打开使用（WebView 壳）",
     downloadAndroidApk: "下载 Android APK",
-    appDownloadNote: "安装时需允许「未知来源」。应用打开后访问线上站点，需联网；仅供内测，非正式应用商店版本。",
+    appDownloadNote:
+      "安装时需允许「未知来源」。应用打开后访问线上站点，需联网；仅供内测，非正式应用商店版本。",
+    deleteAccount: "注销账号",
+    deleteAccountHint: "永久删除账号与全部训练数据，不可恢复",
+    deleteAccountWarning:
+      "注销后，你的计划、打卡、训练记录、跑鞋、力量课、比赛策略与会话登录状态将被永久删除，且无法恢复。若仅需暂时离开，请使用「退出登录」。",
+    deleteAccountConfirmLabel: "请输入以下确认文案以继续",
+    deleteAccountConfirmPlaceholder: "确认注销并永久删除全部数据",
+    deleteAccountOpen: "注销账号…",
+    deleteAccountCancel: "取消",
+    deleteAccountSubmit: "确认永久注销",
+    deleteAccountSubmitting: "正在注销…",
+    deleteAccountMismatch: "确认文案不一致，请完整输入后再试",
   },
 } as const;
 
@@ -61,12 +73,14 @@ const en = {
     title: "Me",
     subtitle: "Account and preferences",
     account: "Account",
-    accountHint: "Password self-service is not available yet; contact an admin to reset",
+    accountHint:
+      "Password self-service is not available yet; contact an admin to reset",
     username: "Username",
     weeklyDistance: "Last 6 weeks mileage",
     redoOnboarding: "Redo onboarding",
     preferences: "Preferences",
-    preferencesHint: "Language and appearance preferences are stored on this device",
+    preferencesHint:
+      "Language and appearance preferences are stored on this device",
     appearance: "Appearance",
     themeSystem: "System",
     themeLight: "Light",
@@ -77,7 +91,20 @@ const en = {
     appDownload: "Install Android app",
     appDownloadHint: "Download the APK to install on your phone (WebView shell)",
     downloadAndroidApk: "Download Android APK",
-    appDownloadNote: "Allow installs from unknown sources. The app loads the live site and needs network access. Internal testing only — not a store release.",
+    appDownloadNote:
+      "Allow installs from unknown sources. The app loads the live site and needs network access. Internal testing only — not a store release.",
+    deleteAccount: "Delete account",
+    deleteAccountHint:
+      "Permanently delete your account and all training data. This cannot be undone.",
+    deleteAccountWarning:
+      "Deleting your account permanently removes plans, check-ins, activities, shoes, strength sessions, race strategies, and login sessions. If you only want to leave for now, use Sign out instead.",
+    deleteAccountConfirmLabel: "Type the confirmation phrase to continue",
+    deleteAccountConfirmPlaceholder: "确认注销并永久删除全部数据",
+    deleteAccountOpen: "Delete account…",
+    deleteAccountCancel: "Cancel",
+    deleteAccountSubmit: "Permanently delete",
+    deleteAccountSubmitting: "Deleting…",
+    deleteAccountMismatch: "Confirmation text does not match. Please type it exactly.",
   },
 } as const;
 
@@ -99,4 +126,3 @@ export function isLocale(value: string | null | undefined): value is Locale {
 export function getDictionary(locale: Locale): Dictionary {
   return dictionaries[locale] ?? dictionaries[DEFAULT_LOCALE];
 }
-

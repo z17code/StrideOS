@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireOnboardedUser } from "@/lib/auth/onboarding-gate";
 import { LogoutButton } from "@/components/layout/logout-button";
+import { DeleteAccountSection } from "@/components/layout/delete-account-section";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { getRequestDictionary } from "@/lib/i18n/server";
@@ -112,6 +113,21 @@ export default async function MePage() {
           </div>
         </CardContent>
       </Card>
+
+      <DeleteAccountSection
+        labels={{
+          title: t.me.deleteAccount,
+          hint: t.me.deleteAccountHint,
+          warning: t.me.deleteAccountWarning,
+          confirmLabel: t.me.deleteAccountConfirmLabel,
+          confirmPlaceholder: t.me.deleteAccountConfirmPlaceholder,
+          openButton: t.me.deleteAccountOpen,
+          cancelButton: t.me.deleteAccountCancel,
+          submitButton: t.me.deleteAccountSubmit,
+          submitting: t.me.deleteAccountSubmitting,
+          mismatch: t.me.deleteAccountMismatch,
+        }}
+      />
     </div>
   );
 }

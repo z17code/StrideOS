@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -10,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ADMIN_DELETE_USER_CONFIRMATION } from "@/lib/auth/delete-account-constants";
 
 type AdminUser = {
   id: string;
@@ -29,6 +31,8 @@ export default function AdminUsersPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editUsername, setEditUsername] = useState("");
   const [editNote, setEditNote] = useState("");
+  const [deletingUser, setDeletingUser] = useState<AdminUser | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
 
   const load = useCallback(async () => {
     setError(null);
@@ -56,6 +60,17 @@ export default function AdminUsersPage() {
     setEditingId(null);
     setEditUsername("");
     setEditNote("");
+  }
+
+  function openDelete(user: AdminUser) {
+    setDeletingUser(user);
+    setDeleteConfirmation("");
+    setError(null);
+  }
+
+  function closeDelete() {
+    setDeletingUser(null);
+    setDeleteConfirmation("");
   }
 
   async function saveEdit(user: AdminUser) {
@@ -128,12 +143,38 @@ export default function AdminUsersPage() {
     }
   }
 
+  async function confirmDelete() {
+    if (!deletingUser) return;
+    if (deleteConfirmation !== ADMIN_DELETE_USER_CONFIRMATION) {
+      setError("确认文案不一致，请完整输入后再试");
+      return;
+    }
+    setBusyId(deletingUser.id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/v1/admin/users/${deletingUser.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirmation: deleteConfirmation }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data?.error?.message ?? "注销失败");
+        return;
+      }
+      closeDelete();
+      await load();
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">用户管理</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          可备注识别用户、修改用户名；停用账号将立即清除其会话
+          可备注识别用户、修改用户名；停用仅禁用登录；注销将永久删除该用户全部数据
         </p>
       </div>
 
@@ -153,6 +194,61 @@ export default function AdminUsersPage() {
             <pre className="whitespace-pre-wrap break-all rounded-md bg-muted p-3 text-xs">
               {resetToken}
             </pre>
+          </CardContent>
+        </Card>
+      )}
+
+      {deletingUser && (
+        <Card className="border-destructive/40">
+          <CardHeader>
+            <CardTitle className="text-base text-destructive">
+              注销用户「{deletingUser.username}」
+            </CardTitle>
+            <CardDescription>
+              将永久删除该用户的计划、打卡、训练记录、跑鞋、力量课、比赛策略与会话，不可恢复。
+              停用账号不会删数据；若只需禁止登录请用「停用」。
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="admin-delete-confirm">
+                请完整输入确认文案
+              </Label>
+              <p className="text-xs text-muted-foreground font-mono break-all select-all">
+                {ADMIN_DELETE_USER_CONFIRMATION}
+              </p>
+              <Input
+                id="admin-delete-confirm"
+                value={deleteConfirmation}
+                onChange={(e) => setDeleteConfirmation(e.target.value)}
+                placeholder={ADMIN_DELETE_USER_CONFIRMATION}
+                autoComplete="off"
+                spellCheck={false}
+                disabled={busyId === deletingUser.id}
+                className="font-mono text-sm"
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                variant="destructive"
+                disabled={
+                  busyId === deletingUser.id ||
+                  deleteConfirmation !== ADMIN_DELETE_USER_CONFIRMATION
+                }
+                onClick={() => void confirmDelete()}
+              >
+                {busyId === deletingUser.id ? "正在注销…" : "确认永久注销"}
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={busyId === deletingUser.id}
+                onClick={closeDelete}
+              >
+                取消
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -264,6 +360,14 @@ export default function AdminUsersPage() {
                           >
                             重置令牌
                           </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            disabled={busyId === u.id || isEditing}
+                            onClick={() => openDelete(u)}
+                          >
+                            注销
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -287,3 +391,4 @@ export default function AdminUsersPage() {
     </div>
   );
 }
+

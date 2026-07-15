@@ -1,4 +1,8 @@
 import { z } from "zod";
+import {
+  ADMIN_DELETE_USER_CONFIRMATION,
+  DELETE_ACCOUNT_CONFIRMATION,
+} from "@/lib/auth/delete-account-constants";
 
 export const usernameSchema = z
   .string()
@@ -63,4 +67,16 @@ export const adminUpdateUserSchema = z.object({
 export const adminCreateResetTokenSchema = z.object({
   userId: z.string().uuid(),
   expiresInHours: z.number().int().min(1).max(168).optional().default(24),
+});
+
+export const deleteAccountSchema = z.object({
+  confirmation: z.literal(DELETE_ACCOUNT_CONFIRMATION, {
+    errorMap: () => ({ message: "请完整输入确认文案" }),
+  }),
+});
+
+export const adminDeleteUserSchema = z.object({
+  confirmation: z.literal(ADMIN_DELETE_USER_CONFIRMATION, {
+    errorMap: () => ({ message: "请完整输入确认文案" }),
+  }),
 });
