@@ -66,11 +66,9 @@ android/                # Capacitor Android 工程
 7. **管理员用户**：可改 `username`、`adminNote`（迁移 `0004_user_admin_note`）；`PUT /api/v1/admin/users/:id` body 可含 `isActive` / `username` / `adminNote`。  
 8. **users.adminNote**：schema 字段 `admin_note`；列表 API 已返回。
 9. **Android Capacitor 壳**：`capacitor.config.ts` → `https://stride-os-livid.vercel.app`，包名 `com.strideos.app`；WebView 加载线上站，非离线原生 App。
-10. **APK 下载（双通道）**：
-    - 网站「我的」：`/downloads/strideos-android.apk`（`public/downloads/`）
-    - GitHub Releases：https://github.com/z17code/StrideOS/releases（资产名 `strideos-android.apk`，tag 建议 `android-vX.Y.Z`）
-    - 发新版时**两边同步**更新；包为 WebView 壳，非离线原生 App。
-    - 「我的」页同时提供站点下载按钮 + GitHub Releases 外链。
+10. **APK 下载**：
+    - 网站「我的」：`/downloads/strideos-android.apk`（`public/downloads/`）— **仅此用户可见入口**，不展示 GitHub 链接（避免暴露仓库账号）。
+    - 发新版时更新 `public/downloads/strideos-android.apk`；包为 WebView 壳，非离线原生 App。
 10. **登录 API 错误可读**：`POST /api/v1/auth/login` 捕获 DB 异常并返回 JSON；只查登录必要字段（不依赖 `admin_note`）；空 500 不再误报为「网络错误」。诊断：`GET /api/v1/health`。
 11. **移动端 / APK UI 层次**：页面灰底 + 白/深卡片分离；底栏与顶栏用 `env(safe-area-inset-*)`（`safe-pb` / `safe-pt` + main `pb`）；viewport `viewportFit: "cover"`。底栏 active 用圆形高亮，保留 `touch-manipulation` / `active:`。
 
@@ -166,6 +164,6 @@ npm run cap:open      # Android Studio 打开工程
 2. `HANDOFF.md` 日期与相关 Phase / API / 迁移表是否对齐  
 3. 若有新迁移：`drizzle/` + journal + HANDOFF 迁移说明  
 
-*最后文档维护提醒写入：2026-07-15（含安全防护 0005；GitHub Releases APK 双通道 + CI/License/Issue 模板）*
+*最后文档维护提醒写入：2026-07-15（「我的」页移除 GitHub Releases 外链；APK 仅站点下载）*
 
 

@@ -241,12 +241,10 @@ npm run dev
 | 配置 | `capacitor.config.ts` |
 | 资产文件名 | `strideos-android.apk` |
 
-### 下载渠道（双通道，发版时请同步更新）
+### 下载渠道
 
-1. **GitHub Releases（推荐分发）**：https://github.com/z17code/StrideOS/releases  
-   - 资源名：`strideos-android.apk`  
-   - Tag 建议：`android-vX.Y.Z`（例如 `android-v1.0.0`）
-2. **网站「我的」页**：`/downloads/strideos-android.apk`（源文件 `public/downloads/strideos-android.apk`）
+- **网站「我的」页**（唯一用户可见入口）：`/downloads/strideos-android.apk`（源文件 `public/downloads/strideos-android.apk`）
+- 用户面不提供 GitHub Releases 外链
 
 安装注意：
 
@@ -267,14 +265,12 @@ Debug APK 一般在 `android/app/build/outputs/apk/debug/app-debug.apk`。
 
 要求本机安装 **Android Studio + Android SDK**。发新版时：
 
-1. 替换 `public/downloads/strideos-android.apk` 并部署站点  
-2. 上传同名文件到 GitHub Release（可用 `gh release upload`）
+1. 替换 `public/downloads/strideos-android.apk` 并部署站点
 
 ## 部署
 
 - **生产站**：https://stride-os-livid.vercel.app
 - **GitHub**：https://github.com/z17code/StrideOS
-- **Releases / APK**：https://github.com/z17code/StrideOS/releases
 - **Vercel**：`main` 推送后自动部署
 - **CI**：GitHub Actions（`typecheck` + `test`，见 `.github/workflows/ci.yml`）
 - 生产环境变量：`DATABASE_URL`、`SESSION_SECRET`、`ADMIN_*`、`AI_*`（可选）

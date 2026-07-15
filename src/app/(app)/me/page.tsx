@@ -15,7 +15,6 @@ import {
 export const dynamic = "force-dynamic";
 
 const ANDROID_APK_HREF = "/downloads/strideos-android.apk";
-const GITHUB_RELEASES_HREF = "https://github.com/z17code/StrideOS/releases";
 
 export default async function MePage() {
   const { user, profile } = await requireOnboardedUser();
@@ -88,23 +87,13 @@ export default async function MePage() {
           <CardDescription>{t.me.appDownloadHint}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            <a
-              href={ANDROID_APK_HREF}
-              download="strideos-android.apk"
-              className="inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm touch-manipulation active:opacity-80 sm:w-auto"
-            >
-              {t.me.downloadAndroidApk}
-            </a>
-            <a
-              href={GITHUB_RELEASES_HREF}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex w-full items-center justify-center rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium shadow-sm touch-manipulation active:opacity-80 sm:w-auto"
-            >
-              {t.me.downloadFromGithub}
-            </a>
-          </div>
+          <a
+            href={ANDROID_APK_HREF}
+            download="strideos-android.apk"
+            className="inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm touch-manipulation active:opacity-80 sm:w-auto"
+          >
+            {t.me.downloadAndroidApk}
+          </a>
           <p className="text-xs text-muted-foreground leading-relaxed">
             {t.me.appDownloadNote}
           </p>
@@ -126,4 +115,3 @@ export default async function MePage() {
     </div>
   );
 }
-

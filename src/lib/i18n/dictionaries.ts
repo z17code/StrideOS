@@ -38,8 +38,7 @@ const zh = {
     appDownload: "安装 Android 应用",
     appDownloadHint: "下载 APK 安装包，在手机上打开使用（WebView 壳）",
     downloadAndroidApk: "下载 Android APK",
-    downloadFromGithub: "从 GitHub Releases 下载",
-    appDownloadNote: "安装时需允许「未知来源」。应用打开后访问线上站点，需联网；仅供内测，非正式应用商店版本。也可从 GitHub Releases 获取同名 APK。",
+    appDownloadNote: "安装时需允许「未知来源」。应用打开后访问线上站点，需联网；仅供内测，非正式应用商店版本。",
   },
 } as const;
 
@@ -78,8 +77,7 @@ const en = {
     appDownload: "Install Android app",
     appDownloadHint: "Download the APK to install on your phone (WebView shell)",
     downloadAndroidApk: "Download Android APK",
-    downloadFromGithub: "Download from GitHub Releases",
-    appDownloadNote: "Allow installs from unknown sources. The app loads the live site and needs network access. Internal testing only — not a store release. The same APK is also on GitHub Releases.",
+    appDownloadNote: "Allow installs from unknown sources. The app loads the live site and needs network access. Internal testing only — not a store release.",
   },
 } as const;
 
