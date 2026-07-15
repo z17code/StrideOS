@@ -1,0 +1,53 @@
+name: Bug report
+description: Report a bug in StrideOS
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please include steps to reproduce.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Clear description of the bug
+      placeholder: Login fails with 500 after Neon cold start...
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to /login
+        2. Enter username/password
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: false
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      options:
+        - Web (desktop)
+        - Web (mobile browser)
+        - Android APK (Capacitor WebView)
+        - Admin
+        - API only
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      description: Browser / Android version / production vs local
+      placeholder: Chrome Android 15, production
+    validations:
+      required: false

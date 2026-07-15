@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Production site
+    url: https://stride-os-livid.vercel.app
+    about: Open the live StrideOS app (invite-only).
+  - name: Android APK releases
+    url: https://github.com/z17code/StrideOS/releases
+    about: Download Capacitor WebView APK builds.

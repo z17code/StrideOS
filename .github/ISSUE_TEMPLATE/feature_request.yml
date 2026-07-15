@@ -1,0 +1,39 @@
+name: Feature request
+description: Suggest a feature or improvement
+title: "[feat] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What user need does this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Training plan / engine
+        - Check-in / activities
+        - Insights / reports
+        - Tools (predict / pace / BMI / race)
+        - Auth / admin
+        - Android APK
+        - Docs / DX
+        - Other
+    validations:
+      required: true

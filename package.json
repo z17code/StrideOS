@@ -2,6 +2,16 @@
   "name": "strideos",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
+  "description": "Invite-only running training cockpit MVP (Next.js + Neon)",
+  "homepage": "https://stride-os-livid.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/z17code/StrideOS.git"
+  },
+  "bugs": {
+    "url": "https://github.com/z17code/StrideOS/issues"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",

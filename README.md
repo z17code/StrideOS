@@ -1,5 +1,9 @@
 # StrideOS
 
+[![CI](https://github.com/z17code/StrideOS/actions/workflows/ci.yml/badge.svg)](https://github.com/z17code/StrideOS/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![Release](https://img.shields.io/github/v/release/z17code/StrideOS?display_name=tag)](https://github.com/z17code/StrideOS/releases)
+
 面向大众进阶跑者的智能训练驾驶舱（邀请制 MVP）。
 
 > **文档入口**：人类/运维看 [HANDOFF.md](./HANDOFF.md)；AI Agent 先看 [AGENTS.md](./AGENTS.md)。
@@ -228,11 +232,29 @@ npm run dev
 
 ## Android APK（Capacitor WebView）
 
-可选：用 Capacitor 把线上站点包成 Android 安装包（**WebView 壳，不是原生重写**）。
+可选：用 Capacitor 把线上站点包成 Android 安装包（**WebView 壳，不是原生重写 / 不支持离线写入**）。
 
-- 包名：`com.strideos.app`
-- 打开地址：`https://stride-os-livid.vercel.app`
-- 配置：`capacitor.config.ts`
+| 项 | 值 |
+|----|-----|
+| 包名 | `com.strideos.app` |
+| 打开地址 | https://stride-os-livid.vercel.app |
+| 配置 | `capacitor.config.ts` |
+| 资产文件名 | `strideos-android.apk` |
+
+### 下载渠道（双通道，发版时请同步更新）
+
+1. **GitHub Releases（推荐分发）**：https://github.com/z17code/StrideOS/releases  
+   - 资源名：`strideos-android.apk`  
+   - Tag 建议：`android-vX.Y.Z`（例如 `android-v1.0.0`）
+2. **网站「我的」页**：`/downloads/strideos-android.apk`（源文件 `public/downloads/strideos-android.apk`）
+
+安装注意：
+
+- 需允许安装未知来源应用（非 Play 商店分发）
+- Debug 签名包仅供内测，正式上架需 release 签名 keystore
+- 手机需能访问生产站；登录 / 计划 / 打卡仍走 Vercel + Neon
+
+### 自行打包
 
 ```bash
 # 依赖已包含 @capacitor/*；首次或配置变更后：
@@ -240,21 +262,25 @@ npm run cap:sync
 npm run cap:open
 ```
 
-在 Android Studio 中：`Build > Build Bundle(s) / APK(s) > Build APK(s)`。
+在 Android Studio 中：`Build > Build Bundle(s) / APK(s) > Build APK(s)`。  
 Debug APK 一般在 `android/app/build/outputs/apk/debug/app-debug.apk`。
 
-要求本机安装 **Android Studio + Android SDK**。手机需能访问生产站点；登录/数据仍走 Vercel + Neon。
+要求本机安装 **Android Studio + Android SDK**。发新版时：
 
-网站下载入口：「我的」→ 安装 Android 应用，文件路径 public/downloads/strideos-android.apk（线上 /downloads/strideos-android.apk）。更新包时替换该文件后重新部署。
-
+1. 替换 `public/downloads/strideos-android.apk` 并部署站点  
+2. 上传同名文件到 GitHub Release（可用 `gh release upload`）
 
 ## 部署
 
+- **生产站**：https://stride-os-livid.vercel.app
 - **GitHub**：https://github.com/z17code/StrideOS
+- **Releases / APK**：https://github.com/z17code/StrideOS/releases
 - **Vercel**：`main` 推送后自动部署
+- **CI**：GitHub Actions（`typecheck` + `test`，见 `.github/workflows/ci.yml`）
 - 生产环境变量：`DATABASE_URL`、`SESSION_SECRET`、`ADMIN_*`、`AI_*`（可选）
-- 改 schema 后需对生产库执行 `npm run db:migrate`（或 `db:push`）；**Vercel 不会自动迁移**（含 `0004_user_admin_note` 用户备注字段）
+- 改 schema 后需对生产库执行 `npm run db:migrate`（或 `db:push`）；**Vercel 不会自动迁移**（含 `0004_user_admin_note`、`0005_auth_rate_limits`）
 - Neon 免费版可能休眠，冷启动约 2–5 秒
+- License：MIT（见 [LICENSE](./LICENSE)）
 
 ## 已知限制 / 后续
 
@@ -269,3 +295,5 @@ Debug APK 一般在 `android/app/build/outputs/apk/debug/app-debug.apk`。
 ```bash
 npm test
 ```
+
+
