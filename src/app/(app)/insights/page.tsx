@@ -7,10 +7,10 @@ export default async function InsightsPage() {
   const { user } = await requireOnboardedUser();
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
+    <div className="page-shell">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">洞察</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h1 className="page-title">洞察</h1>
+        <p className="page-subtitle">
           完成率、负荷趋势与周报
         </p>
       </div>

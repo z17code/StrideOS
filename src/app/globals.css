@@ -3,41 +3,40 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-background: #ffffff;
+  --color-background: #f4f4f5;
   --color-foreground: #0a0a0a;
-  --color-muted: #f5f5f5;
-  --color-muted-foreground: #737373;
-  --color-border: #e5e5e5;
+  --color-muted: #e4e4e7;
+  --color-muted-foreground: #71717a;
+  --color-border: #e4e4e7;
   --color-card: #ffffff;
   --color-primary: #0a0a0a;
   --color-primary-foreground: #fafafa;
-  --color-secondary: #f5f5f5;
-  --color-secondary-foreground: #171717;
-  --color-accent: #f5f5f5;
-  --color-accent-foreground: #171717;
+  --color-secondary: #e4e4e7;
+  --color-secondary-foreground: #18181b;
+  --color-accent: #e4e4e7;
+  --color-accent-foreground: #18181b;
   --color-destructive: #dc2626;
   --color-success: #16a34a;
   --color-warning: #ca8a04;
   --color-ring: #0a0a0a;
   --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
   --font-sans: "Inter", "PingFang SC", "Microsoft YaHei", ui-sans-serif, system-ui, sans-serif;
 }
 
-
 .dark {
-  --color-background: #0a0a0a;
+  --color-background: #09090b;
   --color-foreground: #fafafa;
-  --color-muted: #171717;
-  --color-muted-foreground: #a3a3a3;
-  --color-border: #262626;
-  --color-card: #0a0a0a;
+  --color-muted: #18181b;
+  --color-muted-foreground: #a1a1aa;
+  --color-border: #27272a;
+  --color-card: #121214;
   --color-primary: #fafafa;
-  --color-primary-foreground: #0a0a0a;
-  --color-secondary: #171717;
+  --color-primary-foreground: #09090b;
+  --color-secondary: #18181b;
   --color-secondary-foreground: #fafafa;
-  --color-accent: #171717;
+  --color-accent: #18181b;
   --color-accent-foreground: #fafafa;
   --color-destructive: #ef4444;
   --color-success: #22c55e;
@@ -52,13 +51,47 @@
 
   html {
     @apply antialiased;
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
   }
 
   body {
     @apply bg-background text-foreground font-sans;
+    overscroll-behavior-y: none;
   }
 
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-ring;
+  }
+}
+
+@layer utilities {
+  .safe-pb {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .safe-pt {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .safe-px {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+
+  .page-shell {
+    @apply mx-auto w-full max-w-3xl space-y-5;
+  }
+
+  .page-title {
+    @apply text-xl font-semibold tracking-tight;
+  }
+
+  .page-subtitle {
+    @apply mt-1 text-sm text-muted-foreground;
+  }
+
+  .skeleton {
+    @apply animate-pulse rounded-md bg-muted;
   }
 }

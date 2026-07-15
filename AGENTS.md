@@ -68,6 +68,7 @@ android/                # Capacitor Android 工程
 9. **Android Capacitor 壳**：`capacitor.config.ts` → `https://stride-os-livid.vercel.app`，包名 `com.strideos.app`；WebView 加载线上站，非离线原生 App。
 10. **APK 下载**：「我的」页提供 `/downloads/strideos-android.apk`（`public/downloads/`）；更新包时替换该文件并重新部署。
 10. **登录 API 错误可读**：`POST /api/v1/auth/login` 捕获 DB 异常并返回 JSON；只查登录必要字段（不依赖 `admin_note`）；空 500 不再误报为「网络错误」。诊断：`GET /api/v1/health`。
+11. **移动端 / APK UI 层次**：页面灰底 + 白/深卡片分离；底栏与顶栏用 `env(safe-area-inset-*)`（`safe-pb` / `safe-pt` + main `pb`）；viewport `viewportFit: "cover"`。底栏 active 用圆形高亮，保留 `touch-manipulation` / `active:`。
 
 ---
 

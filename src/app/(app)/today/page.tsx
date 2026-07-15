@@ -71,7 +71,7 @@ function FatigueSlider({
             type="button"
             onClick={() => onChange(n)}
             className={cn(
-              "h-8 flex-1 rounded-md border text-xs font-medium transition-colors",
+              "h-9 flex-1 rounded-lg border text-xs font-medium touch-manipulation transition-colors active:scale-95",
               n <= value
                 ? "border-primary bg-primary text-primary-foreground"
                 : "border-border hover:bg-muted",
@@ -104,7 +104,7 @@ function PainSlider({
             type="button"
             onClick={() => onChange(n)}
             className={cn(
-              "h-7 rounded-md border text-xs transition-colors",
+              "h-8 rounded-lg border text-xs touch-manipulation transition-colors active:scale-95",
               n <= value
                 ? n >= 7
                   ? "border-destructive bg-destructive text-white"
@@ -420,9 +420,17 @@ function TodayActivities({ activities }: { activities: ActivityData[] }) {
           <CardTitle className="text-base">今日训练</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
-            暂无记录 — 前往「记录」页面添加
-          </p>
+          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-muted-foreground">
+              暂无记录 — 去添加今日训练
+            </p>
+            <a
+              href="/activity"
+              className="inline-flex h-9 items-center justify-center rounded-lg border border-border bg-card px-3 text-sm font-medium touch-manipulation active:opacity-80"
+            >
+              去记录
+            </a>
+          </div>
         </CardContent>
       </Card>
     );
@@ -438,7 +446,7 @@ function TodayActivities({ activities }: { activities: ActivityData[] }) {
           {activities.map((a) => (
             <li
               key={a.id}
-              className="rounded-md border border-border p-3 space-y-1"
+              className="rounded-lg border border-border/80 bg-muted/20 p-3 space-y-1"
             >
               <div className="flex items-center justify-between">
                 <span className="font-medium text-sm">
@@ -532,18 +540,25 @@ export default function TodayPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-3xl space-y-4">
-        <h1 className="text-xl font-semibold tracking-tight">今日</h1>
-        <p className="text-sm text-muted-foreground">加载中…</p>
+      <div className="page-shell">
+        <div>
+          <h1 className="page-title">今日</h1>
+          <div className="skeleton mt-2 h-4 w-40" />
+        </div>
+        <div className="space-y-4">
+          <div className="skeleton h-48 w-full rounded-xl" />
+          <div className="skeleton h-28 w-full rounded-xl" />
+          <div className="skeleton h-24 w-full rounded-xl" />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
+    <div className="page-shell">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">今日</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{todayFormatted}</p>
+        <h1 className="page-title">今日</h1>
+        <p className="page-subtitle">{todayFormatted}</p>
       </div>
 
       <CheckinSection initial={checkin} onSaved={handleCheckinSaved} />

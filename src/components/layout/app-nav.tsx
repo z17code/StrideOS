@@ -51,7 +51,7 @@ export function AppNav() {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex md:w-56 md:flex-col md:border-r md:border-border md:bg-background">
+      <aside className="hidden md:flex md:w-56 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-card">
         <div className="flex h-14 items-center border-b border-border px-5">
           <Link href="/today" className="text-sm font-semibold tracking-tight">
             StrideOS
@@ -66,13 +66,13 @@ export function AppNav() {
                 key={href}
                 href={href}
                 className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
                   active
-                    ? "bg-primary text-primary-foreground"
+                    ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-4 w-4 shrink-0" />
                 {label}
               </Link>
             );
@@ -81,8 +81,8 @@ export function AppNav() {
       </aside>
 
       {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur md:hidden">
-        <ul className="grid grid-cols-6">
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-background/95 backdrop-blur-md safe-pb md:hidden">
+        <ul className="grid grid-cols-6 px-1 pt-1">
           {navItems.map(({ href, label, icon: Icon }) => {
             const active =
               pathname === href || pathname.startsWith(`${href}/`);
@@ -91,14 +91,26 @@ export function AppNav() {
                 <Link
                   href={href}
                   className={cn(
-                    "flex flex-col items-center gap-0.5 py-2 text-[10px] touch-manipulation select-none transition-transform active:scale-95 active:opacity-70 active:bg-muted/60 rounded-md",
+                    "flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-lg px-0.5 py-1.5 text-[10px] leading-tight touch-manipulation select-none transition-all active:scale-95 active:opacity-70",
                     active
                       ? "text-foreground"
                       : "text-muted-foreground",
                   )}
                 >
-                  <Icon className={cn("h-5 w-5 transition-transform", active && "stroke-[2.5]")} />
-                  {label}
+                  <span
+                    className={cn(
+                      "flex h-7 w-7 items-center justify-center rounded-full transition-colors",
+                      active && "bg-primary/10",
+                    )}
+                  >
+                    <Icon
+                      className={cn(
+                        "h-5 w-5 transition-transform",
+                        active && "stroke-[2.5]",
+                      )}
+                    />
+                  </span>
+                  <span className={cn(active && "font-medium")}>{label}</span>
                 </Link>
               </li>
             );

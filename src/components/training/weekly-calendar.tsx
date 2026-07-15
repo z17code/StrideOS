@@ -200,7 +200,7 @@ function DayCell({
   return (
     <div
       className={cn(
-        "rounded-lg border border-border p-2",
+        "rounded-xl border border-border/80 bg-card p-2.5 shadow-sm",
         isToday && "ring-2 ring-ring",
         agenda && "flex gap-3",
       )}
@@ -226,7 +226,7 @@ function DayCell({
               key={w.id}
               href={`/plan/workouts/${w.id}`}
               className={cn(
-                "block rounded-md border border-border px-2 py-1.5 text-xs transition-colors hover:bg-muted",
+                "block rounded-lg border border-border/80 bg-background/60 px-2 py-1.5 text-xs transition-colors hover:bg-muted touch-manipulation active:opacity-80",
                 w.workoutType === "race" && "border-primary bg-primary/5",
                 w.isQuality && "border-foreground/40",
               )}

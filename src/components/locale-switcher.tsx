@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { Locale } from "@/lib/i18n/dictionaries";
 
 export function LocaleSwitcher({
@@ -36,28 +36,39 @@ export function LocaleSwitcher({
     }
   }
 
+  const options: { value: Locale; label: string }[] = [
+    { value: "zh-CN", label: labels.chinese },
+    { value: "en", label: labels.english },
+  ];
+
   return (
     <div className="space-y-2">
       <div className="text-sm text-muted-foreground">{labels.language}</div>
-      <div className="flex gap-2">
-        <Button
-          type="button"
-          size="sm"
-          variant={locale === "zh-CN" ? "default" : "outline"}
-          disabled={saving}
-          onClick={() => void choose("zh-CN")}
-        >
-          {labels.chinese}
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant={locale === "en" ? "default" : "outline"}
-          disabled={saving}
-          onClick={() => void choose("en")}
-        >
-          {labels.english}
-        </Button>
+      <div
+        className="grid grid-cols-2 gap-1 rounded-lg border border-border bg-muted/50 p-1"
+        role="group"
+        aria-label={labels.language}
+      >
+        {options.map((opt) => {
+          const active = locale === opt.value;
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              disabled={saving}
+              onClick={() => void choose(opt.value)}
+              className={cn(
+                "h-9 rounded-md text-sm font-medium touch-manipulation transition-colors active:scale-[0.98] disabled:opacity-50",
+                active
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+              aria-pressed={active}
+            >
+              {opt.label}
+            </button>
+          );
+        })}
       </div>
       {message && <p className="text-xs text-muted-foreground">{message}</p>}
     </div>

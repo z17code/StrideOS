@@ -29,19 +29,19 @@ export default async function AppLayout({
   return (
     <div className="flex min-h-dvh">
       {completed && <AppNav />}
-      <div className="flex min-h-dvh flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center border-b border-border bg-background/95 px-4 backdrop-blur md:px-6">
-          <span className="text-sm font-medium text-muted-foreground md:hidden">
+      <div className="flex min-h-dvh min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-30 flex h-14 items-center border-b border-border/80 bg-background/90 px-4 backdrop-blur-md safe-pt md:px-6">
+          <span className="text-sm font-semibold tracking-tight md:hidden">
             StrideOS
           </span>
-          <span className="ml-auto text-sm text-muted-foreground">
+          <span className="ml-auto truncate text-sm text-muted-foreground">
             {user.username}
           </span>
         </header>
         <main
           className={
             completed
-              ? "flex-1 px-4 py-5 pb-24 md:px-6 md:pb-6"
+              ? "flex-1 px-4 py-5 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:px-6 md:pb-6"
               : "flex-1 px-4 py-5 md:px-6"
           }
         >

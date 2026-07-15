@@ -396,18 +396,22 @@ export default function ActivityPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-3xl space-y-4">
-        <h1 className="text-xl font-semibold tracking-tight">记录</h1>
-        <p className="text-sm text-muted-foreground">加载中…</p>
+      <div className="page-shell">
+        <div>
+          <h1 className="page-title">记录</h1>
+          <div className="skeleton mt-2 h-4 w-28" />
+        </div>
+        <div className="skeleton h-56 w-full rounded-xl" />
+        <div className="skeleton h-40 w-full rounded-xl" />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
+    <div className="page-shell">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">记录</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h1 className="page-title">记录</h1>
+        <p className="page-subtitle">
           手动添加训练记录
         </p>
       </div>

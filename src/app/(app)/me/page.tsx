@@ -21,10 +21,10 @@ export default async function MePage() {
   const { locale, t } = await getRequestDictionary();
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
+    <div className="page-shell">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">{t.me.title}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{t.me.subtitle}</p>
+        <h1 className="page-title">{t.me.title}</h1>
+        <p className="page-subtitle">{t.me.subtitle}</p>
       </div>
 
       <Card>
@@ -90,7 +90,7 @@ export default async function MePage() {
           <a
             href={ANDROID_APK_HREF}
             download="strideos-android.apk"
-            className="inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground touch-manipulation active:opacity-80 sm:w-auto"
+            className="inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm touch-manipulation active:opacity-80 sm:w-auto"
           >
             {t.me.downloadAndroidApk}
           </a>
