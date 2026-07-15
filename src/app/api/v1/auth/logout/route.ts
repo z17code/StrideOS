@@ -4,9 +4,15 @@ import {
   clearSessionCookie,
   destroySession,
 } from "@/lib/auth/session";
-import { jsonOk } from "@/lib/auth/guards";
+import { jsonError, jsonOk } from "@/lib/auth/guards";
+import { assertSameOrigin } from "@/lib/security/request";
 
-export async function POST() {
+export async function POST(request: Request) {
+  const originCheck = assertSameOrigin(request);
+  if (!originCheck.ok) {
+    return jsonError(originCheck.status, originCheck.code, originCheck.message);
+  }
+
   const jar = await cookies();
   const token = jar.get(SESSION_COOKIE)?.value;
   if (token) {

@@ -6,24 +6,46 @@ export const usernameSchema = z
   .max(32, "用户名最多 32 个字符")
   .regex(/^[a-zA-Z0-9_一-龥]+$/, "用户名仅支持中英文、数字和下划线");
 
+/**
+ * Password policy: length + basic complexity (not just digits/letters alone).
+ * Avoid overly strict rules that frustrate users; block common weak patterns.
+ */
 export const passwordSchema = z
   .string()
   .min(8, "密码至少 8 个字符")
-  .max(128, "密码最多 128 个字符");
+  .max(128, "密码最多 128 个字符")
+  .refine((p) => !/\s/.test(p), "密码不能包含空格")
+  .refine(
+    (p) => /[A-Za-z]/.test(p) && /\d/.test(p),
+    "密码需同时包含字母和数字",
+  )
+  .refine((p) => {
+    const lower = p.toLowerCase();
+    const blocked = [
+      "password",
+      "12345678",
+      "123456789",
+      "qwertyui",
+      "strideos",
+      "admin123",
+      "password1",
+    ];
+    return !blocked.some((b) => lower === b || lower.includes(b));
+  }, "密码过于简单，请换一个更安全的密码");
 
 export const registerSchema = z.object({
-  inviteCode: z.string().min(1, "请输入邀请码"),
+  inviteCode: z.string().min(1, "请输入邀请码").max(64, "邀请码过长"),
   username: usernameSchema,
   password: passwordSchema,
 });
 
 export const loginSchema = z.object({
-  username: z.string().min(1, "请输入用户名"),
-  password: z.string().min(1, "请输入密码"),
+  username: z.string().min(1, "请输入用户名").max(64, "用户名过长"),
+  password: z.string().min(1, "请输入密码").max(128, "密码过长"),
 });
 
 export const resetPasswordWithTokenSchema = z.object({
-  token: z.string().min(1, "请输入重置令牌"),
+  token: z.string().min(1, "请输入重置令牌").max(256, "令牌过长"),
   newPassword: passwordSchema,
 });
 

@@ -74,6 +74,15 @@ android/                # Capacitor Android 工程
 13. **注册确认密码**：`/register` 密码后有「确认密码」；不一致时前端拦截（「两次输入的密码不一致」），API 仍只收 `password`。
 14. **深色模式顶底栏**：移动端底栏/顶栏用实色 `bg-card`（勿用 `bg-background/95` 等 opacity，Tailwind v4 在部分手机浏览器会回退到浅色硬编码）；active 圆点用 `bg-muted`；`ThemeProvider` 同步 `meta[name=theme-color]`。
 
+15. **安全防护（auth + 全站）**：
+   - 登录失败限流/锁定（DB 表 `auth_rate_limits`，迁移 `0005_auth_rate_limits`）：同 IP 15 分钟内约 20 次失败锁 15 分钟；同用户名 5 次失败锁 15 分钟；返回 `429 TOO_MANY_ATTEMPTS` + `Retry-After`。
+   - 注册/重置密码按 IP 限流（防邀请码/令牌爆破）。
+   - 未知用户也走假哈希校验，降低用户名枚举时序差异。
+   - 密码策略：≥8 且含字母+数字，拦截常见弱口令；API JSON 体默认 ≤64KB。
+   - CSRF 缓解：`middleware` + auth 路由对写操作校验 Origin/Referer；Cookie `HttpOnly` + `SameSite=Lax` + 生产 `Secure`。
+   - 安全响应头：`next.config.mjs`（CSP / HSTS / X-Frame-Options DENY / nosniff / Referrer-Policy / Permissions-Policy）；`poweredByHeader: false`。
+   - 逻辑在 `src/lib/security/*`；改限流阈值改 `rate-limit.ts` 的 policy 常量。
+
 ---
 
 ## 5. 认证与角色
@@ -153,5 +162,5 @@ npm run cap:open      # Android Studio 打开工程
 2. `HANDOFF.md` 日期与相关 Phase / API / 迁移表是否对齐  
 3. 若有新迁移：`drizzle/` + journal + HANDOFF 迁移说明  
 
-*最后文档维护提醒写入：2026-07-15（含 Capacitor Android 壳 + 工具计算器：成绩预测 / 配速 / BMI）*
+*最后文档维护提醒写入：2026-07-15（含安全防护：登录锁定/限流 + 安全头 + Origin 校验；迁移 0005）*
 

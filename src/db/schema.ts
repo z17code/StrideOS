@@ -127,6 +127,27 @@ export const passwordResetTokens = pgTable(
   (t) => [uniqueIndex("password_reset_tokens_token_hash_uidx").on(t.tokenHash)],
 );
 
+/**
+ * Generic rate-limit / lockout buckets (login IP, login username, register IP, …).
+ * Survives serverless instances; see src/lib/security/rate-limit.ts.
+ */
+export const authRateLimits = pgTable(
+  "auth_rate_limits",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    bucket: text("bucket").notNull(),
+    hits: integer("hits").notNull().default(0),
+    windowStart: timestamp("window_start", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    lockedUntil: timestamp("locked_until", { withTimezone: true }),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [uniqueIndex("auth_rate_limits_bucket_uidx").on(t.bucket)],
+);
+
 // ─── Runner profile & goals ──────────────────────────────
 
 export const runnerProfiles = pgTable(
@@ -465,3 +486,4 @@ export type Shoe = typeof shoes.$inferSelect;
 export type StrengthSession = typeof strengthSessions.$inferSelect;
 export type RaceStrategy = typeof raceStrategies.$inferSelect;
 export type NewRaceStrategy = typeof raceStrategies.$inferInsert;
+export type AuthRateLimit = typeof authRateLimits.$inferSelect;

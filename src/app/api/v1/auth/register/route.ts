@@ -1,4 +1,5 @@
 import { and, eq, isNull } from "drizzle-orm";
+import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { inviteCodes, users } from "@/db/schema";
 import { hashPassword } from "@/lib/auth/password";
@@ -6,21 +7,61 @@ import {
   createSession,
   setSessionCookie,
 } from "@/lib/auth/session";
-import { jsonCreated, jsonError } from "@/lib/auth/guards";
+import { jsonCreated, jsonError, type ApiErrorBody } from "@/lib/auth/guards";
 import { registerSchema } from "@/lib/validators/auth";
+import {
+  assertSameOrigin,
+  getClientIp,
+  ipBucketKey,
+  readJsonBody,
+} from "@/lib/security/request";
+import {
+  REGISTER_IP_POLICY,
+  checkRateLimit,
+  clearRateLimit,
+  formatLockMessage,
+  hitRateLimit,
+  rateLimitHeaders,
+  type RateLimitStatus,
+} from "@/lib/security/rate-limit";
+
+export const dynamic = "force-dynamic";
+export const maxDuration = 30;
+
+function lockedResponse(status: RateLimitStatus) {
+  const body: ApiErrorBody = {
+    error: {
+      code: "TOO_MANY_ATTEMPTS",
+      message: formatLockMessage(status.retryAfterSec),
+      details: { retryAfterSec: status.retryAfterSec },
+    },
+  };
+  return NextResponse.json(body, {
+    status: 429,
+    headers: rateLimitHeaders(status),
+  });
+}
 
 export async function POST(request: Request) {
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return jsonError(400, "INVALID_JSON", "请求体必须是 JSON");
+  const originCheck = assertSameOrigin(request);
+  if (!originCheck.ok) {
+    return jsonError(originCheck.status, originCheck.code, originCheck.message);
   }
 
-  const parsed = registerSchema.safeParse(body);
+  const bodyResult = await readJsonBody(request);
+  if (!bodyResult.ok) {
+    return jsonError(bodyResult.status, bodyResult.code, bodyResult.message);
+  }
+
+  const parsed = registerSchema.safeParse(bodyResult.data);
   if (!parsed.success) {
     return jsonError(400, "VALIDATION_ERROR", "参数校验失败", parsed.error.flatten());
   }
+
+  const ip = getClientIp(request);
+  const ipKey = ipBucketKey("register", ip);
+  const ipStatus = await checkRateLimit(ipKey, REGISTER_IP_POLICY);
+  if (!ipStatus.allowed) return lockedResponse(ipStatus);
 
   const { inviteCode, username, password } = parsed.data;
   const code = inviteCode.trim().toUpperCase();
@@ -30,10 +71,14 @@ export async function POST(request: Request) {
   });
 
   if (!invite) {
+    const after = await hitRateLimit(ipKey, REGISTER_IP_POLICY);
+    if (!after.allowed) return lockedResponse(after);
     return jsonError(400, "INVALID_INVITE", "邀请码无效或已被使用");
   }
 
   if (invite.expiresAt && invite.expiresAt < new Date()) {
+    const after = await hitRateLimit(ipKey, REGISTER_IP_POLICY);
+    if (!after.allowed) return lockedResponse(after);
     return jsonError(400, "INVITE_EXPIRED", "邀请码已过期");
   }
 
@@ -41,6 +86,9 @@ export async function POST(request: Request) {
     where: eq(users.username, username),
   });
   if (existing) {
+    // Username taken is not an invite brute-force signal; still soft-limit IP.
+    const after = await hitRateLimit(ipKey, REGISTER_IP_POLICY);
+    if (!after.allowed) return lockedResponse(after);
     return jsonError(409, "USERNAME_TAKEN", "用户名已被占用");
   }
 
@@ -57,7 +105,6 @@ export async function POST(request: Request) {
       })
       .returning();
 
-    // Re-check invite inside transaction
     const [claimed] = await tx
       .update(inviteCodes)
       .set({
@@ -82,8 +129,12 @@ export async function POST(request: Request) {
   });
 
   if (!result) {
+    const after = await hitRateLimit(ipKey, REGISTER_IP_POLICY);
+    if (!after.allowed) return lockedResponse(after);
     return jsonError(400, "INVALID_INVITE", "邀请码无效或已被使用");
   }
+
+  await clearRateLimit(ipKey);
 
   const token = await createSession(result.id);
   await setSessionCookie(token);

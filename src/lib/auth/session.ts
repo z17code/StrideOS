@@ -9,6 +9,24 @@ export { generateToken, hashToken } from "./tokens";
 export const SESSION_COOKIE = "strideos_session";
 const SESSION_DAYS = 30;
 
+function cookieSecure(): boolean {
+  if (process.env.FORCE_SECURE_COOKIES === "1") return true;
+  if (process.env.NODE_ENV === "production") return true;
+  // Vercel preview always HTTPS
+  if (process.env.VERCEL === "1") return true;
+  return false;
+}
+
+function sessionCookieOptions(maxAge: number) {
+  return {
+    httpOnly: true,
+    secure: cookieSecure(),
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge,
+  };
+}
+
 export async function createSession(userId: string): Promise<string> {
   const token = generateToken();
   const tokenHash = hashToken(token);
@@ -84,22 +102,10 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
 
 export async function setSessionCookie(token: string): Promise<void> {
   const jar = await cookies();
-  jar.set(SESSION_COOKIE, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: SESSION_DAYS * 24 * 60 * 60,
-  });
+  jar.set(SESSION_COOKIE, token, sessionCookieOptions(SESSION_DAYS * 24 * 60 * 60));
 }
 
 export async function clearSessionCookie(): Promise<void> {
   const jar = await cookies();
-  jar.set(SESSION_COOKIE, "", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 0,
-  });
+  jar.set(SESSION_COOKIE, "", sessionCookieOptions(0));
 }
