@@ -1,8 +1,11 @@
 import Link from "next/link";
 import {
+  Activity,
+  Calculator,
   Dumbbell,
   Footprints,
   Gauge,
+  Scale,
   type LucideIcon,
 } from "lucide-react";
 import { requireOnboardedUser } from "@/lib/auth/onboarding-gate";
@@ -22,6 +25,24 @@ const TOOLS: {
   description: string;
   icon: LucideIcon;
 }[] = [
+  {
+    href: "/tools/predict",
+    title: "成绩预测",
+    description: "输入近期成绩 · 评估各距离表现 · 预测等价成绩",
+    icon: Activity,
+  },
+  {
+    href: "/tools/pace",
+    title: "配速计算器",
+    description: "里程 + 用时 / 配速 / 圈速，任意一项自动推算",
+    icon: Calculator,
+  },
+  {
+    href: "/tools/bmi",
+    title: "BMI 计算器",
+    description: "身高体重 · 身体状况 · 标准体重参考",
+    icon: Scale,
+  },
   {
     href: "/tools/race",
     title: "比赛策略",
@@ -48,10 +69,10 @@ export default async function ToolsPage() {
     <div className="page-shell">
       <div>
         <h1 className="page-title">工具</h1>
-        <p className="page-subtitle">跑鞋、力量与比赛策略</p>
+        <p className="page-subtitle">成绩预测、配速、BMI 与训练辅助</p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {TOOLS.map((t) => {
           const Icon = t.icon;
           return (

@@ -70,6 +70,8 @@ android/                # Capacitor Android 工程
 10. **登录 API 错误可读**：`POST /api/v1/auth/login` 捕获 DB 异常并返回 JSON；只查登录必要字段（不依赖 `admin_note`）；空 500 不再误报为「网络错误」。诊断：`GET /api/v1/health`。
 11. **移动端 / APK UI 层次**：页面灰底 + 白/深卡片分离；底栏与顶栏用 `env(safe-area-inset-*)`（`safe-pb` / `safe-pt` + main `pb`）；viewport `viewportFit: "cover"`。底栏 active 用圆形高亮，保留 `touch-manipulation` / `active:`。
 
+12. **工具计算器（纯前端）**：成绩预测 `/tools/predict`（VDOT 锚定 + 各距离表现评估）、配速计算器 `/tools/pace`（里程 + 用时/配速/圈速互算）、BMI `/tools/bmi`；逻辑在 `src/lib/tools/*`。
+
 ---
 
 ## 5. 认证与角色
@@ -85,7 +87,7 @@ android/                # Capacitor Android 工程
 ```
 注册/登录 →（可选）onboarding → 比赛目标 → plans/generate
     → 周历执行 → 打卡 + 训练记录 → adjustments 调课 → insights 报告
-工具：shoes / strength / race(VDOT 策略)
+工具：predict / pace / bmi / race(VDOT 策略) / shoes / strength
 ```
 
 - 计划生成：`src/lib/plans/engine.ts`（确定性）。  
@@ -149,5 +151,5 @@ npm run cap:open      # Android Studio 打开工程
 2. `HANDOFF.md` 日期与相关 Phase / API / 迁移表是否对齐  
 3. 若有新迁移：`drizzle/` + journal + HANDOFF 迁移说明  
 
-*最后文档维护提醒写入：2026-07-15（含 Capacitor Android 壳）*
+*最后文档维护提醒写入：2026-07-15（含 Capacitor Android 壳 + 工具计算器：成绩预测 / 配速 / BMI）*
 
