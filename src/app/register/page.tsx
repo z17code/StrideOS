@@ -19,12 +19,19 @@ export default function RegisterPage() {
   const [inviteCode, setInviteCode] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (password !== confirmPassword) {
+      setError("两次输入的密码不一致");
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await fetch("/api/v1/auth/register", {
@@ -94,6 +101,18 @@ export default function RegisterPage() {
                   minLength={8}
                 />
                 <p className="text-xs text-muted-foreground">至少 8 个字符</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">确认密码</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  minLength={8}
+                />
               </div>
               {error && (
                 <p className="text-sm text-destructive" role="alert">
