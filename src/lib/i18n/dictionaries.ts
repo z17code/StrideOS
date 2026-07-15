@@ -35,6 +35,10 @@ const zh = {
     help: "帮助与反馈",
     helpHint: "使用问题或建议可添加微信联系",
     wechat: "微信号",
+    appDownload: "安装 Android 应用",
+    appDownloadHint: "下载 APK 安装包，在手机上打开使用（WebView 壳）",
+    downloadAndroidApk: "下载 Android APK",
+    appDownloadNote: "安装时需允许「未知来源」。应用打开后访问线上站点，需联网；仅供内测，非正式应用商店版本。",
   },
 } as const;
 
@@ -70,6 +74,10 @@ const en = {
     help: "Help & feedback",
     helpHint: "Add WeChat for questions or suggestions",
     wechat: "WeChat",
+    appDownload: "Install Android app",
+    appDownloadHint: "Download the APK to install on your phone (WebView shell)",
+    downloadAndroidApk: "Download Android APK",
+    appDownloadNote: "Allow installs from unknown sources. The app loads the live site and needs network access. Internal testing only — not a store release.",
   },
 } as const;
 

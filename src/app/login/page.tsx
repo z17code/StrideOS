@@ -14,6 +14,29 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+async function readApiError(res: Response): Promise<string> {
+  const text = await res.text();
+  if (!text) {
+    return res.status >= 500
+      ? "服务暂时不可用，请稍后重试"
+      : "登录失败";
+  }
+  try {
+    const data = JSON.parse(text) as {
+      error?: { message?: string; code?: string };
+    };
+    return data?.error?.message ?? "登录失败";
+  } catch {
+    if (res.status === 504 || res.status === 408) {
+      return "请求超时，数据库可能正在唤醒，请再试一次";
+    }
+    if (res.status >= 500) {
+      return "服务暂时不可用，请稍后重试";
+    }
+    return "登录失败";
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
@@ -31,9 +54,15 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
-      const data = await res.json();
       if (!res.ok) {
-        setError(data?.error?.message ?? "登录失败");
+        setError(await readApiError(res));
+        return;
+      }
+      let data: { user?: { role?: string } };
+      try {
+        data = JSON.parse(await res.text()) as { user?: { role?: string } };
+      } catch {
+        setError("登录响应异常，请稍后重试");
         return;
       }
       if (data.user?.role === "admin") {
@@ -43,7 +72,7 @@ export default function LoginPage() {
       }
       router.refresh();
     } catch {
-      setError("网络错误，请稍后重试");
+      setError("无法连接服务器，请检查网络后重试");
     } finally {
       setLoading(false);
     }

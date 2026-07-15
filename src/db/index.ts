@@ -16,8 +16,12 @@ function createDb() {
     );
   }
   const client = postgres(connectionString, {
-    max: 10,
+    max: 1,
     prepare: false,
+    // Neon free tier cold-starts; give connection a bit more room on serverless.
+    connect_timeout: 15,
+    idle_timeout: 20,
+    max_lifetime: 60 * 5,
   });
   return drizzle(client, { schema });
 }

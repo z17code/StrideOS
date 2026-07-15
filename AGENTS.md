@@ -46,6 +46,9 @@ src/lib/
   i18n/                 # dictionaries + server locale
   datetime.ts           # 上海时区日期工具
 drizzle/                # 正式迁移 SQL（0000…0004）
+capacitor.config.ts     # Android WebView 壳（server.url → 生产站）
+capacitor-www/          # Capacitor 占位页
+android/                # Capacitor Android 工程
 ```
 
 ---
@@ -62,6 +65,8 @@ drizzle/                # 正式迁移 SQL（0000…0004）
 6. **移动端底栏**：需要 `active:` / `touch-manipulation` 按压反馈。  
 7. **管理员用户**：可改 `username`、`adminNote`（迁移 `0004_user_admin_note`）；`PUT /api/v1/admin/users/:id` body 可含 `isActive` / `username` / `adminNote`。  
 8. **users.adminNote**：schema 字段 `admin_note`；列表 API 已返回。
+9. **Android Capacitor 壳**：`capacitor.config.ts` → `https://stride-os-livid.vercel.app`，包名 `com.strideos.app`；WebView 加载线上站，非离线原生 App。
+10. **登录 API 错误可读**：`POST /api/v1/auth/login` 捕获 DB 异常并返回 JSON；只查登录必要字段（不依赖 `admin_note`）；空 500 不再误报为「网络错误」。诊断：`GET /api/v1/health`。
 
 ---
 
@@ -96,6 +101,8 @@ npm test
 npm run db:migrate    # 正式迁移（优先）
 npm run db:push       # 应急对齐 schema
 npm run db:seed       # 管理员种子
+npm run cap:sync      # 同步 Capacitor → android
+npm run cap:open      # Android Studio 打开工程
 ```
 
 生产改 schema 后：对 Neon 的 `DATABASE_URL` 执行 `db:migrate`，再依赖 Vercel 的 `main` 自动部署。
@@ -108,6 +115,7 @@ npm run db:seed       # 管理员种子
 - 无 GPX/路线集成  
 - 无用户自助改密  
 - PWA 轻量缓存，不做离线写入  
+- Android Capacitor WebView 壳（加载线上站；见 HANDOFF「Android / Capacitor」）  
 - Neon 冷启动 2–5s  
 
 ---
@@ -139,5 +147,5 @@ npm run db:seed       # 管理员种子
 2. `HANDOFF.md` 日期与相关 Phase / API / 迁移表是否对齐  
 3. 若有新迁移：`drizzle/` + journal + HANDOFF 迁移说明  
 
-*最后文档维护提醒写入：2026-07-15*
+*最后文档维护提醒写入：2026-07-15（含 Capacitor Android 壳）*
 

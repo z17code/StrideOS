@@ -14,6 +14,8 @@ import {
 
 export const dynamic = "force-dynamic";
 
+const ANDROID_APK_HREF = "/downloads/strideos-android.apk";
+
 export default async function MePage() {
   const { user, profile } = await requireOnboardedUser();
   const { locale, t } = await getRequestDictionary();
@@ -76,6 +78,25 @@ export default async function MePage() {
               dark: t.me.themeDark,
             }}
           />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t.me.appDownload}</CardTitle>
+          <CardDescription>{t.me.appDownloadHint}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <a
+            href={ANDROID_APK_HREF}
+            download="strideos-android.apk"
+            className="inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground touch-manipulation active:opacity-80 sm:w-auto"
+          >
+            {t.me.downloadAndroidApk}
+          </a>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {t.me.appDownloadNote}
+          </p>
         </CardContent>
       </Card>
 

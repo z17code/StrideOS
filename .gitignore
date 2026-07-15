@@ -14,3 +14,8 @@ _write_files.py
 test-results.txt
 tsc-check.txt
 tsc-out.txt
+.npm-cache/
+
+# Capacitor signing secrets
+*.keystore
+*.jks

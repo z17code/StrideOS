@@ -15,6 +15,7 @@
 - 自定义认证（scrypt + HttpOnly Cookie）
 - Vitest（单元测试 + fast-check 属性测试）
 - PWA（`manifest.webmanifest` + service worker）
+- Android Capacitor WebView 壳（加载生产站，可选）
 - i18n（Cookie `strideos_locale`，基础版 zh-CN / en）
 
 更完整的交接说明见 [HANDOFF.md](./HANDOFF.md)。
@@ -96,6 +97,9 @@ npm run dev
 | `npm run db:push` | 直接 push schema |
 | `npm run db:studio` | Drizzle Studio |
 | `npm run db:seed` | 种子管理员 |
+| `npm run cap:sync` | 同步 Capacitor 配置到 `android/` |
+| `npm run cap:open` | 用 Android Studio 打开工程 |
+| `npm run cap:copy` | 仅复制 web 资源到 Android |
 
 ## Phase 进度
 
@@ -134,6 +138,7 @@ npm run dev
 
 ### 平台能力
 - [x] 移动端 PWA（manifest + 轻量 service worker）
+- [x] Android Capacitor WebView 壳（加载 `stride-os-livid.vercel.app`）
 - [x] 界面语言切换（导航 +「我的」页；Cookie `strideos_locale`）
 - [x] Client 组件禁止直接 import DB service（力量模板见 `src/lib/strength/templates.ts`）
 - [x] 外观主题（跟随系统 / 浅色 / 深色）
@@ -217,6 +222,28 @@ npm run dev
 - `POST /api/v1/onboarding/complete` 传 `{ skip: true }` 跳过入门
 - `GET /api/v1/plans/:versionId/export?format=ics|md|pdf`
 - 计划版本：`PATCH` 改 label；`POST` 激活；`DELETE` 删除（不可删唯一活跃版时按业务错误返回）
+
+## Android APK（Capacitor WebView）
+
+可选：用 Capacitor 把线上站点包成 Android 安装包（**WebView 壳，不是原生重写**）。
+
+- 包名：`com.strideos.app`
+- 打开地址：`https://stride-os-livid.vercel.app`
+- 配置：`capacitor.config.ts`
+
+```bash
+# 依赖已包含 @capacitor/*；首次或配置变更后：
+npm run cap:sync
+npm run cap:open
+```
+
+在 Android Studio 中：`Build > Build Bundle(s) / APK(s) > Build APK(s)`。
+Debug APK 一般在 `android/app/build/outputs/apk/debug/app-debug.apk`。
+
+要求本机安装 **Android Studio + Android SDK**。手机需能访问生产站点；登录/数据仍走 Vercel + Neon。
+
+网站下载入口：「我的」→ 安装 Android 应用，文件路径 public/downloads/strideos-android.apk（线上 /downloads/strideos-android.apk）。更新包时替换该文件后重新部署。
+
 
 ## 部署
 
