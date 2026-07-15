@@ -13,6 +13,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { registerSchema } from "@/lib/validators/auth";
+import {
+  firstFlattenMessage,
+  firstZodMessage,
+} from "@/lib/validators/format";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -32,6 +37,12 @@ export default function RegisterPage() {
       return;
     }
 
+    const local = registerSchema.safeParse({ inviteCode, username, password });
+    if (!local.success) {
+      setError(firstZodMessage(local.error));
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await fetch("/api/v1/auth/register", {
@@ -41,7 +52,8 @@ export default function RegisterPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data?.error?.message ?? "注册失败");
+        const fromDetails = firstFlattenMessage(data?.error?.details);
+        setError(fromDetails ?? data?.error?.message ?? "注册失败");
         return;
       }
       router.replace("/");
@@ -88,6 +100,9 @@ export default function RegisterPage() {
                   required
                   minLength={3}
                 />
+                <p className="text-xs text-muted-foreground">
+                  3–32 个字符，支持中英文、数字和下划线
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">密码</Label>
@@ -100,7 +115,9 @@ export default function RegisterPage() {
                   required
                   minLength={8}
                 />
-                <p className="text-xs text-muted-foreground">至少 8 个字符</p>
+                <p className="text-xs text-muted-foreground">
+                  至少 8 个字符，须同时包含字母和数字
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">确认密码</Label>

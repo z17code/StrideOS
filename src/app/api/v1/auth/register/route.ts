@@ -9,6 +9,7 @@ import {
 } from "@/lib/auth/session";
 import { jsonCreated, jsonError, type ApiErrorBody } from "@/lib/auth/guards";
 import { registerSchema } from "@/lib/validators/auth";
+import { firstZodMessage } from "@/lib/validators/format";
 import {
   assertSameOrigin,
   getClientIp,
@@ -55,7 +56,12 @@ export async function POST(request: Request) {
 
   const parsed = registerSchema.safeParse(bodyResult.data);
   if (!parsed.success) {
-    return jsonError(400, "VALIDATION_ERROR", "参数校验失败", parsed.error.flatten());
+    return jsonError(
+      400,
+      "VALIDATION_ERROR",
+      firstZodMessage(parsed.error),
+      parsed.error.flatten(),
+    );
   }
 
   const ip = getClientIp(request);

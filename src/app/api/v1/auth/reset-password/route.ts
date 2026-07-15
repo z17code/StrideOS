@@ -7,6 +7,7 @@ import { destroyAllUserSessions } from "@/lib/auth/session";
 import { hashToken } from "@/lib/auth/tokens";
 import { jsonError, jsonOk, type ApiErrorBody } from "@/lib/auth/guards";
 import { resetPasswordWithTokenSchema } from "@/lib/validators/auth";
+import { firstZodMessage } from "@/lib/validators/format";
 import {
   assertSameOrigin,
   getClientIp,
@@ -56,7 +57,12 @@ export async function POST(request: Request) {
 
   const parsed = resetPasswordWithTokenSchema.safeParse(bodyResult.data);
   if (!parsed.success) {
-    return jsonError(400, "VALIDATION_ERROR", "参数校验失败", parsed.error.flatten());
+    return jsonError(
+      400,
+      "VALIDATION_ERROR",
+      firstZodMessage(parsed.error),
+      parsed.error.flatten(),
+    );
   }
 
   const ip = getClientIp(request);
