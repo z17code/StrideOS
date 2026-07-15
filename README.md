@@ -2,6 +2,9 @@
 
 面向大众进阶跑者的智能训练驾驶舱（邀请制 MVP）。
 
+> **文档入口**：人类/运维看 [HANDOFF.md](./HANDOFF.md)；AI Agent 先看 [AGENTS.md](./AGENTS.md)。
+
+
 ## 技术栈
 
 - Next.js 15 (App Router) + TypeScript
@@ -131,6 +134,11 @@ npm run dev
 - [x] 移动端 PWA（manifest + 轻量 service worker）
 - [x] 界面语言切换（导航 +「我的」页；Cookie `strideos_locale`）
 - [x] Client 组件禁止直接 import DB service（力量模板见 `src/lib/strength/templates.ts`）
+- [x] 外观主题（跟随系统 / 浅色 / 深色）
+- [x] 帮助与反馈（微信号 z17code）
+- [x] 管理员：用户备注 + 修改用户名
+- [x] 打卡上海时区日期；计划周历边界隐藏翻页
+- [x] 入门成绩/目标：时分秒输入框
 
 ## 关键 API
 
@@ -192,7 +200,7 @@ npm run dev
 | 方法 | 路径 | 备注 |
 |------|------|------|
 | GET  | `/api/v1/admin/users` | |
-| PUT  | `/api/v1/admin/users/:id` | 启停等 |
+| PUT  | `/api/v1/admin/users/:id` | `isActive` / `username` / `adminNote` |
 | GET/POST | `/api/v1/admin/invite-codes` | |
 | DELETE | `/api/v1/admin/invite-codes/:id` | |
 | POST | `/api/v1/admin/reset-token` | 生成重置令牌 |
@@ -213,7 +221,7 @@ npm run dev
 - **GitHub**：https://github.com/z17code/StrideOS
 - **Vercel**：`main` 推送后自动部署
 - 生产环境变量：`DATABASE_URL`、`SESSION_SECRET`、`ADMIN_*`、`AI_*`（可选）
-- 改 schema 后需对生产库执行 `npm run db:migrate`（或 `db:push`）；**Vercel 不会自动迁移**
+- 改 schema 后需对生产库执行 `npm run db:migrate`（或 `db:push`）；**Vercel 不会自动迁移**（含 `0004_user_admin_note` 用户备注字段）
 - Neon 免费版可能休眠，冷启动约 2–5 秒
 
 ## 已知限制 / 后续
