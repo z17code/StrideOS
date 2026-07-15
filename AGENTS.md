@@ -66,6 +66,7 @@ android/                # Capacitor Android 工程
 7. **管理员用户**：可改 `username`、`adminNote`（迁移 `0004_user_admin_note`）；`PUT /api/v1/admin/users/:id` body 可含 `isActive` / `username` / `adminNote`。  
 8. **users.adminNote**：schema 字段 `admin_note`；列表 API 已返回。
 9. **Android Capacitor 壳**：`capacitor.config.ts` → `https://stride-os-livid.vercel.app`，包名 `com.strideos.app`；WebView 加载线上站，非离线原生 App。
+10. **APK 下载**：「我的」页提供 `/downloads/strideos-android.apk`（`public/downloads/`）；更新包时替换该文件并重新部署。
 10. **登录 API 错误可读**：`POST /api/v1/auth/login` 捕获 DB 异常并返回 JSON；只查登录必要字段（不依赖 `admin_note`）；空 500 不再误报为「网络错误」。诊断：`GET /api/v1/health`。
 
 ---
