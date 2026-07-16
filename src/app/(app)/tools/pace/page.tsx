@@ -82,13 +82,13 @@ type FormState = {
 
 const INITIAL: FormState = {
   distanceStr: "10",
-  timeH: "0",
-  timeM: "40",
-  timeS: "0",
-  paceM: "4",
-  paceS: "0",
-  lapM: "1",
-  lapS: "36",
+  timeH: "",
+  timeM: "",
+  timeS: "",
+  paceM: "",
+  paceS: "",
+  lapM: "",
+  lapS: "",
 };
 
 function applyComputed(
@@ -408,3 +408,4 @@ export default function PaceCalculatorPage() {
     </div>
   );
 }
+

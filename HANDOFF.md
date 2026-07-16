@@ -1,6 +1,6 @@
 # StrideOS — 交接文档
 
-> 本文档面向后续接手开发的工程师与 AI Agent。所有信息基于 **2026-07-15** 项目状态。
+> 本文档面向后续接手开发的工程师与 AI Agent。所有信息基于 **2026-07-16** 项目状态。
 >
 > **AI 优先读 [AGENTS.md](./AGENTS.md)**（最短上下文）；本文是完整交接。
 
@@ -380,7 +380,7 @@ src/
 | PUT  | `/api/v1/admin/users/:id` | `isActive` / `username` / `adminNote` |
 | DELETE | `/api/v1/admin/users/:id` | 永久注销；body `{ confirmation: "确认注销该用户并永久删除全部数据" }`；不可注销自己/唯一管理员 |
 | GET/POST | `/api/v1/admin/invite-codes` | |
-| DELETE | `/api/v1/admin/invite-codes/:id` | 仅未使用（`usedAt` 为空）可撤销；已用码不可撤销 |
+| DELETE | `/api/v1/admin/invite-codes/:id` | 硬删除未使用码（删行，永久不可用）；已用码不可删 |
 | POST | `/api/v1/admin/reset-token` | 生成重置令牌 |
 
 ---

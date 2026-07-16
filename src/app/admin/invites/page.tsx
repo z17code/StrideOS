@@ -20,11 +20,30 @@ type Invite = {
   createdAt: string;
 };
 
+function inviteStatusLabel(c: Invite): {
+  label: string;
+  className: string;
+} {
+  // Redeemer still linked → used for registration
+  if (c.usedByUserId) {
+    return { label: "已使用", className: "text-muted-foreground" };
+  }
+  // usedAt with no redeemer: account permanently deleted (FK SET NULL) — code stays invalid
+  if (c.usedAt) {
+    return { label: "已失效", className: "text-muted-foreground" };
+  }
+  if (c.expiresAt && new Date(c.expiresAt) < new Date()) {
+    return { label: "已过期", className: "text-warning" };
+  }
+  return { label: "可用", className: "text-success" };
+}
+
 export default function AdminInvitesPage() {
   const [codes, setCodes] = useState<Invite[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<string[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -79,17 +98,23 @@ export default function AdminInvitesPage() {
     }
   }
 
-  async function revoke(id: string) {
+  async function deleteInvite(id: string) {
+    if (!window.confirm("确定删除该邀请码？将从列表中移除且永久不可再使用。")) return;
     setError(null);
-    const res = await fetch(`/api/v1/admin/invite-codes/${id}`, {
-      method: "DELETE",
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setError(data?.error?.message ?? "撤销失败");
-      return;
+    setBusyId(id);
+    try {
+      const res = await fetch(`/api/v1/admin/invite-codes/${id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data?.error?.message ?? "删除失败");
+        return;
+      }
+      await load();
+    } finally {
+      setBusyId(null);
     }
-    await load();
   }
 
   return (
@@ -98,7 +123,7 @@ export default function AdminInvitesPage() {
         <div>
           <h1 className="text-xl font-semibold tracking-tight">邀请码</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            默认 30 天有效，使用后不可撤销
+            默认 30 天有效；删除后从列表移除且不可再用；使用后不可删除
           </p>
         </div>
         <div className="flex gap-2">
@@ -166,9 +191,8 @@ export default function AdminInvitesPage() {
               </thead>
               <tbody>
                 {codes.map((c) => {
-                  const used = Boolean(c.usedAt || c.usedByUserId);
-                  const expired =
-                    c.expiresAt && new Date(c.expiresAt) < new Date();
+                  const status = inviteStatusLabel(c);
+                  const canDelete = !c.usedAt && !c.usedByUserId;
                   return (
                     <tr
                       key={c.id}
@@ -195,13 +219,7 @@ export default function AdminInvitesPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        {used ? (
-                          <span className="text-muted-foreground">已使用</span>
-                        ) : expired ? (
-                          <span className="text-warning">已过期</span>
-                        ) : (
-                          <span className="text-success">可用</span>
-                        )}
+                        <span className={status.className}>{status.label}</span>
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">
                         {c.expiresAt
@@ -209,13 +227,14 @@ export default function AdminInvitesPage() {
                           : "永久"}
                       </td>
                       <td className="px-4 py-3">
-                        {!used && (
+                        {canDelete && (
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => void revoke(c.id)}
+                            disabled={busyId === c.id}
+                            onClick={() => void deleteInvite(c.id)}
                           >
-                            撤销
+                            删除
                           </Button>
                         )}
                       </td>

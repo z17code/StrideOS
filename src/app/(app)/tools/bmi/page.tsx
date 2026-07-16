@@ -28,15 +28,9 @@ const CATEGORY_CLASS: Record<BmiCategory, string> = {
 };
 
 export default function BmiCalculatorPage() {
-  const [height, setHeight] = useState("160");
-  const [weight, setWeight] = useState("53");
-  const [result, setResult] = useState<BmiResult | null>(() => {
-    try {
-      return computeBmi(160, 53);
-    } catch {
-      return null;
-    }
-  });
+  const [height, setHeight] = useState("");
+  const [weight, setWeight] = useState("");
+  const [result, setResult] = useState<BmiResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   function calculate(e?: React.FormEvent) {
@@ -190,3 +184,4 @@ export default function BmiCalculatorPage() {
     </div>
   );
 }
+

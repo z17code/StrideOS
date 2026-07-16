@@ -72,7 +72,7 @@ android/                # Capacitor Android 工程
 10. **登录 API 错误可读**：`POST /api/v1/auth/login` 捕获 DB 异常并返回 JSON；只查登录必要字段（不依赖 `admin_note`）；空 500 不再误报为「网络错误」。诊断：`GET /api/v1/health`。
 11. **移动端 / APK UI 层次**：页面灰底 + 白/深卡片分离；底栏与顶栏用 `env(safe-area-inset-*)`（`safe-pb` / `safe-pt` + main `pb`）；viewport `viewportFit: "cover"`。底栏 active 用圆形高亮，保留 `touch-manipulation` / `active:`。
 
-12. **工具计算器（纯前端）**：成绩预测 `/tools/predict`（VDOT 锚定 + 各距离表现评估）、配速计算器 `/tools/pace`（里程 + 用时/配速/圈速互算）、BMI `/tools/bmi`；逻辑在 `src/lib/tools/*`。
+12. **工具计算器（纯前端）**：成绩预测 `/tools/predict`（VDOT 锚定 + 各距离表现评估）、配速计算器 `/tools/pace`（里程 + 用时/配速/圈速互算）、BMI `/tools/bmi`；逻辑在 `src/lib/tools/*`。配速/BMI **无默认示例数据**（仅类型预选如 10 公里里程；用时/配速/身高体重为空）。
 13. **注册确认密码与校验提示**：`/register` 密码后有「确认密码」；不一致时前端拦截（「两次输入的密码不一致」），API 仍只收 `password`。密码策略：≥8 且须字母+数字，拦截常见弱口令；前端提示「至少 8 个字符，须同时包含字母和数字」，并在提交前用同一 `registerSchema` 预校验。校验失败时 API `message` 返回首条具体 Zod 文案（如「密码需同时包含字母和数字」），不再只显示笼统「参数校验失败」。
 14. **深色模式顶底栏**：移动端底栏/顶栏用实色 `bg-card`（勿用 `bg-background/95` 等 opacity，Tailwind v4 在部分手机浏览器会回退到浅色硬编码）；active 圆点用 `bg-muted`；`ThemeProvider` 同步 `meta[name=theme-color]`。
 
@@ -97,6 +97,11 @@ android/                # Capacitor Android 工程
     - 判定：`usedAt` 非空 = 已使用（注册查询、claim 条件、管理端状态/撤销均用 `usedAt`）。
     - `usedByUserId` 仅作软关联；用户永久删除时 ON DELETE SET NULL，**不得**据此把码重新标为可用。
     - 禁止回退到仅检查 `isNull(usedByUserId)` 的注册逻辑。
+
+18. **邀请码删除（永久不可用）**：
+    - 管理端「邀请码」对未使用码可点「删除」；`DELETE /api/v1/admin/invite-codes/:id`。
+    - **硬删除**：从 `invite_codes` 表删行，码字符串不再存在 → 无法注册；不占库空间。
+    - 已使用的邀请码不可删（保留审计）；仅 `usedAt`、无 redeemer（用户已注销）列表仍显示「已失效」。
 
 
 ---
@@ -178,6 +183,6 @@ npm run cap:open      # Android Studio 打开工程
 2. `HANDOFF.md` 日期与相关 Phase / API / 迁移表是否对齐  
 3. 若有新迁移：`drizzle/` + journal + HANDOFF 迁移说明  
 
-*最后文档维护提醒写入：2026-07-15（已用邀请码永久无效；账号永久注销）*
+*最后文档维护提醒写入：2026-07-16（邀请码硬删除；配速/BMI 无默认示例数据）*
 
 
