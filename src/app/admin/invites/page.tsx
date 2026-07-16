@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -20,23 +21,23 @@ type Invite = {
   createdAt: string;
 };
 
-function inviteStatusLabel(c: Invite): {
-  label: string;
-  className: string;
-} {
-  if (c.usedByUserId) {
-    return { label: "已使用", className: "text-muted-foreground" };
-  }
-  if (c.usedAt) {
-    return { label: "已失效", className: "text-muted-foreground" };
-  }
-  if (c.expiresAt && new Date(c.expiresAt) < new Date()) {
-    return { label: "已过期", className: "text-warning" };
-  }
+type StatusFilter = "all" | "available" | "used" | "expired" | "invalid";
+type ExpiryPreset = 7 | 30 | 90 | null;
+
+function inviteKind(c: Invite): StatusFilter {
+  if (c.usedAt) return c.usedByUserId ? "used" : "invalid";
+  if (c.expiresAt && new Date(c.expiresAt) < new Date()) return "expired";
+  return "available";
+}
+
+function inviteStatusLabel(c: Invite): { label: string; className: string } {
+  const kind = inviteKind(c);
+  if (kind === "used") return { label: "已使用", className: "text-muted-foreground" };
+  if (kind === "invalid") return { label: "已失效", className: "text-muted-foreground" };
+  if (kind === "expired") return { label: "已过期", className: "text-warning" };
   return { label: "可用", className: "text-success" };
 }
 
-/** Clipboard helper that works on mobile (secure context + textarea fallback). */
 async function copyText(text: string): Promise<boolean> {
   try {
     if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
@@ -44,23 +45,13 @@ async function copyText(text: string): Promise<boolean> {
       return true;
     }
   } catch {
-    // fall through to execCommand
+    // fallthrough
   }
-
   try {
     const ta = document.createElement("textarea");
     ta.value = text;
     ta.setAttribute("readonly", "");
     ta.style.position = "fixed";
-    ta.style.top = "0";
-    ta.style.left = "0";
-    ta.style.width = "1px";
-    ta.style.height = "1px";
-    ta.style.padding = "0";
-    ta.style.border = "none";
-    ta.style.outline = "none";
-    ta.style.boxShadow = "none";
-    ta.style.background = "transparent";
     ta.style.opacity = "0";
     document.body.appendChild(ta);
     ta.focus();
@@ -82,6 +73,8 @@ export default function AdminInvitesPage() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [clearing, setClearing] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [filter, setFilter] = useState<StatusFilter>("all");
+  const [expiry, setExpiry] = useState<ExpiryPreset>(30);
 
   useEffect(() => {
     if (!copiedId) return;
@@ -113,15 +106,26 @@ export default function AdminInvitesPage() {
     void load();
   }, [load]);
 
+  const filtered = useMemo(() => {
+    if (filter === "all") return codes;
+    return codes.filter((c) => inviteKind(c) === filter);
+  }, [codes, filter]);
+
   async function createCodes(count: number) {
     setLoading(true);
     setError(null);
     setCreated(null);
     try {
+      const body: Record<string, unknown> = { count };
+      if (expiry == null) {
+        body.expiresInDays = null;
+      } else {
+        body.expiresInDays = expiry;
+      }
       const res = await fetch("/api/v1/admin/invite-codes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ count, expiresInDays: 30 }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -133,6 +137,32 @@ export default function AdminInvitesPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function copyCreatedAll() {
+    if (!created?.length) return;
+    const ok = await copyText(created.join("\n"));
+    if (!ok) {
+      setError("复制失败，请手动选择");
+      return;
+    }
+    setCopiedId("created-all");
+  }
+
+  async function copyAvailableAll() {
+    const available = codes
+      .filter((c) => inviteKind(c) === "available")
+      .map((c) => c.code);
+    if (available.length === 0) {
+      setError("当前没有可用邀请码");
+      return;
+    }
+    const ok = await copyText(available.join("\n"));
+    if (!ok) {
+      setError("复制失败，请手动选择");
+      return;
+    }
+    setCopiedId("available-all");
   }
 
   async function deleteInvite(id: string) {
@@ -189,10 +219,27 @@ export default function AdminInvitesPage() {
         <div>
           <h1 className="text-xl font-semibold tracking-tight">邀请码</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            默认 30 天有效；可删除任意码或一键清空，删除后永久不可用
+            可选过期策略；删除后永久不可用
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-end gap-2">
+          <div className="space-y-1">
+            <Label htmlFor="invite-expiry">有效期</Label>
+            <select
+              id="invite-expiry"
+              className="flex h-9 rounded-md border border-input bg-background px-3 text-sm"
+              value={expiry == null ? "never" : String(expiry)}
+              onChange={(e) => {
+                const v = e.target.value;
+                setExpiry(v === "never" ? null : (Number(v) as ExpiryPreset));
+              }}
+            >
+              <option value="7">7 天</option>
+              <option value="30">30 天</option>
+              <option value="90">90 天</option>
+              <option value="never">不过期</option>
+            </select>
+          </div>
           <Button
             variant="outline"
             disabled={loading}
@@ -211,6 +258,30 @@ export default function AdminInvitesPage() {
         </div>
       </div>
 
+      <div className="flex flex-wrap items-center gap-2">
+        <Label htmlFor="invite-filter">筛选</Label>
+        <select
+          id="invite-filter"
+          className="flex h-9 rounded-md border border-input bg-background px-3 text-sm"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value as StatusFilter)}
+        >
+          <option value="all">全部</option>
+          <option value="available">可用</option>
+          <option value="used">已使用</option>
+          <option value="expired">已过期</option>
+          <option value="invalid">已失效</option>
+        </select>
+        <Button
+          size="sm"
+          variant="outline"
+          className="touch-manipulation"
+          onClick={() => void copyAvailableAll()}
+        >
+          {copiedId === "available-all" ? "已复制可用" : "复制全部可用"}
+        </Button>
+      </div>
+
       {error && (
         <p className="text-sm text-destructive" role="alert">
           {error}
@@ -219,9 +290,27 @@ export default function AdminInvitesPage() {
 
       {created && (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">新生成的邀请码</CardTitle>
-            <CardDescription>请妥善保管并分发给受邀用户</CardDescription>
+          <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0">
+            <div>
+              <CardTitle className="text-base">新生成的邀请码</CardTitle>
+              <CardDescription>请妥善保管并分发给受邀用户</CardDescription>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              className="touch-manipulation"
+              onClick={() => void copyCreatedAll()}
+            >
+              {copiedId === "created-all" ? (
+                <>
+                  <Check className="mr-1 h-4 w-4" /> 已复制全部
+                </>
+              ) : (
+                <>
+                  <ClipboardCopy className="mr-1 h-4 w-4" /> 复制全部
+                </>
+              )}
+            </Button>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-sm">
@@ -264,7 +353,7 @@ export default function AdminInvitesPage() {
                 </tr>
               </thead>
               <tbody>
-                {codes.map((c) => {
+                {filtered.map((c) => {
                   const status = inviteStatusLabel(c);
                   return (
                     <tr
@@ -314,7 +403,7 @@ export default function AdminInvitesPage() {
                     </tr>
                   );
                 })}
-                {codes.length === 0 && (
+                {filtered.length === 0 && (
                   <tr>
                     <td
                       colSpan={4}

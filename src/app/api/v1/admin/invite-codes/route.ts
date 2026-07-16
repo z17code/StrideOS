@@ -3,7 +3,11 @@ import { db } from "@/db";
 import { inviteCodes } from "@/db/schema";
 import { generateToken } from "@/lib/auth/tokens";
 import { jsonCreated, jsonError, jsonOk, requireAdmin } from "@/lib/auth/guards";
+import { logAdminAction } from "@/lib/admin/audit";
 import { createInviteCodeSchema } from "@/lib/validators/auth";
+import { assertSameOrigin, readJsonBody } from "@/lib/security/request";
+
+export const dynamic = "force-dynamic";
 
 function makeInviteCode(): string {
   // Short readable code: 8 chars base64url uppercased, no padding
@@ -18,7 +22,7 @@ export async function GET() {
     .select()
     .from(inviteCodes)
     .orderBy(desc(inviteCodes.createdAt))
-    .limit(100);
+    .limit(200);
 
   return jsonOk({ inviteCodes: codes });
 }
@@ -41,9 +45,12 @@ export async function POST(request: Request) {
   }
 
   const count = parsed.data.count ?? 1;
-  const expiresAt = parsed.data.expiresInDays
-    ? new Date(Date.now() + parsed.data.expiresInDays * 24 * 60 * 60 * 1000)
-    : null;
+  // null / undefined expiresInDays => no expiry; positive number => days from now
+  const expiresInDays = parsed.data.expiresInDays;
+  const expiresAt =
+    expiresInDays == null
+      ? null
+      : new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000);
 
   const values = Array.from({ length: count }, () => ({
     code: makeInviteCode(),
@@ -53,6 +60,18 @@ export async function POST(request: Request) {
 
   const created = await db.insert(inviteCodes).values(values).returning();
 
+  await logAdminAction({
+    admin: auth.user,
+    action: "invite.create",
+    targetType: "invite_code",
+    summary: `创建 ${created.length} 个邀请码`,
+    metadata: {
+      count: created.length,
+      expiresInDays: expiresInDays ?? null,
+      codes: created.map((c) => c.code),
+    },
+  });
+
   return jsonCreated({ inviteCodes: created });
 }
 
@@ -60,10 +79,24 @@ export async function POST(request: Request) {
  * Hard-delete all invite codes (admin clear).
  * DELETE /api/v1/admin/invite-codes
  */
-export async function DELETE() {
+export async function DELETE(request: Request) {
+  const originCheck = assertSameOrigin(request);
+  if (!originCheck.ok) {
+    return jsonError(originCheck.status, originCheck.code, originCheck.message);
+  }
+
   const auth = await requireAdmin();
   if (auth.error) return auth.error;
 
   const deleted = await db.delete(inviteCodes).returning({ id: inviteCodes.id });
+
+  await logAdminAction({
+    admin: auth.user,
+    action: "invite.clear",
+    targetType: "invite_code",
+    summary: `一键清空邀请码（${deleted.length}）`,
+    metadata: { deletedCount: deleted.length },
+  });
+
   return jsonOk({ ok: true, deletedCount: deleted.length });
 }

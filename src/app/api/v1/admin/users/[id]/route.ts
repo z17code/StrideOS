@@ -1,12 +1,11 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import {
-  isDeleteAccountError,
-  permanentlyDeleteUser,
-} from "@/lib/auth/delete-account";
+import { permanentlyDeleteUser, isDeleteAccountError } from "@/lib/auth/delete-account";
 import { destroyAllUserSessions } from "@/lib/auth/session";
 import { jsonError, jsonOk, requireAdmin } from "@/lib/auth/guards";
+import { logAdminAction } from "@/lib/admin/audit";
+import { getAdminUserDetail } from "@/lib/admin/users";
 import { assertSameOrigin, readJsonBody } from "@/lib/security/request";
 import {
   adminDeleteUserSchema,
@@ -14,6 +13,21 @@ import {
 } from "@/lib/validators/auth";
 
 type Params = { params: Promise<{ id: string }> };
+
+export const dynamic = "force-dynamic";
+
+/** GET /api/v1/admin/users/:id — read-only support summary */
+export async function GET(_request: Request, { params }: Params) {
+  const auth = await requireAdmin();
+  if (auth.error) return auth.error;
+
+  const { id } = await params;
+  const detail = await getAdminUserDetail(id);
+  if (!detail) {
+    return jsonError(404, "NOT_FOUND", "用户不存在");
+  }
+  return jsonOk(detail);
+}
 
 export async function PUT(request: Request, { params }: Params) {
   const auth = await requireAdmin();
@@ -73,11 +87,33 @@ export async function PUT(request: Request, { params }: Params) {
       adminNote: users.adminNote,
       role: users.role,
       isActive: users.isActive,
+      lastLoginAt: users.lastLoginAt,
+      createdAt: users.createdAt,
     });
 
   if (parsed.data.isActive === false) {
     await destroyAllUserSessions(id);
   }
+
+  const actions: string[] = [];
+  if (parsed.data.isActive === false) actions.push("user.disable");
+  if (parsed.data.isActive === true) actions.push("user.enable");
+  if (parsed.data.username !== undefined) actions.push("user.update");
+  if (parsed.data.adminNote !== undefined) actions.push("user.update");
+  if (actions.length === 0) actions.push("user.update");
+
+  await logAdminAction({
+    admin: auth.user,
+    action: actions[0]!,
+    targetType: "user",
+    targetId: id,
+    summary: `更新用户 ${updated.username}`,
+    metadata: {
+      isActive: parsed.data.isActive,
+      username: parsed.data.username,
+      adminNote: parsed.data.adminNote,
+    },
+  });
 
   return jsonOk({ user: updated });
 }
@@ -113,6 +149,14 @@ export async function DELETE(request: Request, { params }: Params) {
     const result = await permanentlyDeleteUser(id, {
       actingAdminId: auth.user.id,
     });
+    await logAdminAction({
+      admin: auth.user,
+      action: "user.delete",
+      targetType: "user",
+      targetId: id,
+      summary: `永久注销 ${result.deletedUsername}`,
+      metadata: { username: result.deletedUsername },
+    });
     return jsonOk({ ok: true, deletedUsername: result.deletedUsername });
   } catch (err) {
     if (isDeleteAccountError(err)) {
@@ -128,3 +172,4 @@ export async function DELETE(request: Request, { params }: Params) {
     return jsonError(500, "INTERNAL_ERROR", "注销失败，请稍后重试");
   }
 }
+

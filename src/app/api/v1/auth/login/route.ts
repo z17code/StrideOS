@@ -117,6 +117,16 @@ export async function POST(request: Request) {
     const token = await createSession(user.id);
     await setSessionCookie(token);
 
+    // Best-effort last login stamp (ignore if column not yet migrated).
+    try {
+      await db
+        .update(users)
+        .set({ lastLoginAt: new Date() })
+        .where(eq(users.id, user.id));
+    } catch (stampErr) {
+      console.error("[auth/login] lastLoginAt stamp failed", stampErr);
+    }
+
     return jsonOk({
       user: {
         id: user.id,
@@ -157,3 +167,4 @@ export async function POST(request: Request) {
     return jsonError(500, "LOGIN_FAILED", "登录服务异常，请稍后重试");
   }
 }
+

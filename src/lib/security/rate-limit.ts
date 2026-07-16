@@ -2,9 +2,10 @@
  * DB-backed rate limiting / lockout for auth endpoints.
  * Works across Vercel serverless instances (unlike pure in-memory maps).
  */
-import { eq, sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { authRateLimits } from "@/db/schema";
+import { usernameBucketKey } from "@/lib/security/request";
 
 export type RateLimitPolicy = {
   /** Max failures (or attempts) inside one window before lock. */
@@ -258,3 +259,48 @@ export function formatLockMessage(retryAfterSec: number): string {
   const mins = Math.ceil(retryAfterSec / 60);
   return `尝试次数过多，请 ${mins} 分钟后再试`;
 }
+
+/** List rate-limit rows for admin UI (newest first). */
+export async function listRateLimitBuckets(limit = 100) {
+  const n = Math.min(Math.max(limit, 1), 300);
+  try {
+    return await db
+      .select()
+      .from(authRateLimits)
+      .orderBy(desc(authRateLimits.updatedAt))
+      .limit(n);
+  } catch (err) {
+    console.error("[rate-limit] list failed", err);
+    return [];
+  }
+}
+
+/** Clear by primary key id. */
+export async function clearRateLimitById(id: string): Promise<boolean> {
+  try {
+    const deleted = await db
+      .delete(authRateLimits)
+      .where(eq(authRateLimits.id, id))
+      .returning({ id: authRateLimits.id });
+    return deleted.length > 0;
+  } catch (err) {
+    console.error("[rate-limit] clearById failed", err);
+    return false;
+  }
+}
+
+/** Clear all login locks matching a username key prefix. */
+export async function clearRateLimitsForUsername(username: string): Promise<number> {
+  const key = usernameBucketKey("login", username);
+  try {
+    const deleted = await db
+      .delete(authRateLimits)
+      .where(eq(authRateLimits.bucket, key))
+      .returning({ id: authRateLimits.id });
+    return deleted.length;
+  } catch (err) {
+    console.error("[rate-limit] clearForUsername failed", err);
+    return 0;
+  }
+}
+

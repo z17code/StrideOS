@@ -33,11 +33,12 @@
 
 ```
 src/app/(app)/          # 登录后主站：today / plan / activity / insights / tools / me / onboarding
-src/app/admin/          # 管理员 UI（users / invites）
+src/app/admin/          # 管理员 UI（users / invites / security / audit）
 src/app/api/v1/         # REST API
 src/components/         # UI + theme + layout + training/*
 src/db/schema.ts        # 唯一 schema 源
 src/lib/
+  admin/                # 管理端 stats / audit / user summary
   auth/                 # session / password / guards
   plans/                # PlanEngine + service + export
   adjustments/          # 调课规则引擎
@@ -45,7 +46,7 @@ src/lib/
   validators/           # zod
   i18n/                 # dictionaries + server locale
   datetime.ts           # 上海时区日期工具
-drizzle/                # 正式迁移 SQL（0000…0004）
+drizzle/                # 正式迁移 SQL（0000…0006）
 capacitor.config.ts     # Android WebView 壳（server.url → 生产站）
 capacitor-www/          # Capacitor 占位页
 android/                # Capacitor Android 工程
@@ -104,6 +105,16 @@ android/                # Capacitor Android 工程
     - 清空：`DELETE /api/v1/admin/invite-codes`（删全部行）。
     - **硬删除**行 → 码字符串不存在，无法再注册；不占库空间。
     - 复制：clipboard API + `execCommand` 回退（修手机复制失败）；码文本 `select-all` 可长按手选。
+
+19. **管理后台运维增强（P0/P1）**：
+    - 概览 KPI：`GET /api/v1/admin/stats`（用户/邀请码/今日打卡/活跃计划）。
+    - 用户：搜索 `?q=`、筛选 `?status=all|active|disabled|admin`；`GET /api/v1/admin/users/:id` 只读摘要（onboarding/目标/计划/打卡/会话数，不含训练全文）。
+    - `users.lastLoginAt`（迁移 `0006_admin_ops`）：登录成功写入；列表展示最近登录。
+    - 踢下线：`DELETE /api/v1/admin/users/:id/sessions`。
+    - 限流管理：`/admin/security` + `GET/DELETE /api/v1/admin/rate-limits`（按 id/bucket/username 解锁）。
+    - 审计：`admin_audit_logs` + `GET /api/v1/admin/audit-logs`；写操作 best-effort 记日志。
+    - 重置令牌：返回 `resetPath`/`resetUrl`；生成时作废该用户旧未用令牌；`DELETE /api/v1/admin/reset-token` body `{userId}` 作废未用令牌；`/reset-password?token=` 预填。
+    - 邀请码：过期预设 7/30/90/不过期；状态筛选；复制全部可用/新生成。
 
 
 ---
@@ -185,6 +196,8 @@ npm run cap:open      # Android Studio 打开工程
 2. `HANDOFF.md` 日期与相关 Phase / API / 迁移表是否对齐  
 3. 若有新迁移：`drizzle/` + journal + HANDOFF 迁移说明  
 
-*最后文档维护提醒写入：2026-07-16（邀请码全量删除/一键清空；明文+手机可复制；配速/BMI 无默认数据）*
+*最后文档维护提醒写入：2026-07-16（管理后台 P0/P1：概览/用户摘要/限流/审计/重置链接/邀请码筛选）*
+
+
 
 

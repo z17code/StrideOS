@@ -83,7 +83,7 @@ npm run dev
 打开 [http://localhost:3000](http://localhost:3000)。
 
 - 普通用户：`/login` → `/today`
-- 管理员：登录后进入 `/admin`，可生成邀请码
+- 管理员：登录后进入 `/admin`（用户/邀请码/限流/审计）
 
 ## 脚本
 
@@ -213,11 +213,19 @@ npm run dev
 
 | 方法 | 路径 | 备注 |
 |------|------|------|
-| GET  | `/api/v1/admin/users` | |
+| GET  | `/api/v1/admin/stats` | 概览 KPI |
+| GET  | `/api/v1/admin/users` | 列表；`q` / `status` |
+| GET  | `/api/v1/admin/users/:id` | 只读摘要 |
 | PUT  | `/api/v1/admin/users/:id` | `isActive` / `username` / `adminNote` |
+| DELETE | `/api/v1/admin/users/:id` | 永久注销 |
+| DELETE | `/api/v1/admin/users/:id/sessions` | 踢下线 |
 | GET/POST | `/api/v1/admin/invite-codes` | |
 | DELETE | `/api/v1/admin/invite-codes/:id` | |
-| POST | `/api/v1/admin/reset-token` | 生成重置令牌 |
+| DELETE | `/api/v1/admin/invite-codes` | 清空全部 |
+| POST | `/api/v1/admin/reset-token` | 生成重置令牌（含链接） |
+| DELETE | `/api/v1/admin/reset-token` | 作废未用令牌 |
+| GET/DELETE | `/api/v1/admin/rate-limits` | 限流管理 |
+| GET  | `/api/v1/admin/audit-logs` | 操作审计 |
 
 ### API 备注
 
@@ -274,7 +282,7 @@ Debug APK 一般在 `android/app/build/outputs/apk/debug/app-debug.apk`。
 - **Vercel**：`main` 推送后自动部署
 - **CI**：GitHub Actions（`typecheck` + `test`，见 `.github/workflows/ci.yml`）
 - 生产环境变量：`DATABASE_URL`、`SESSION_SECRET`、`ADMIN_*`、`AI_*`（可选）
-- 改 schema 后需对生产库执行 `npm run db:migrate`（或 `db:push`）；**Vercel 不会自动迁移**（含 `0004_user_admin_note`、`0005_auth_rate_limits`）
+- 改 schema 后需对生产库执行 `npm run db:migrate`（或 `db:push`）；**Vercel 不会自动迁移**（含 `0004_user_admin_note`、`0005_auth_rate_limits`、`0006_admin_ops`）
 - Neon 免费版可能休眠，冷启动约 2–5 秒
 - License：MIT（见 [LICENSE](./LICENSE)）
 
@@ -291,5 +299,6 @@ Debug APK 一般在 `android/app/build/outputs/apk/debug/app-debug.apk`。
 ```bash
 npm test
 ```
+
 
 

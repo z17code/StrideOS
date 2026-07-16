@@ -5,6 +5,14 @@ import { LogoutButton } from "@/components/layout/logout-button";
 
 export const dynamic = "force-dynamic";
 
+const NAV = [
+  { href: "/admin", label: "概览" },
+  { href: "/admin/users", label: "用户" },
+  { href: "/admin/invites", label: "邀请码" },
+  { href: "/admin/security", label: "安全" },
+  { href: "/admin/audit", label: "审计" },
+] as const;
+
 export default async function AdminLayout({
   children,
 }: {
@@ -20,23 +28,25 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-dvh">
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-border bg-card px-4 md:px-6">
-        <Link href="/admin" className="text-sm font-semibold tracking-tight">
+      <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-card px-4 md:px-6">
+        <Link href="/admin" className="shrink-0 text-sm font-semibold tracking-tight">
           StrideOS Admin
         </Link>
-        <nav className="flex items-center gap-3 text-sm text-muted-foreground">
-          <Link href="/admin" className="hover:text-foreground">
-            概览
-          </Link>
-          <Link href="/admin/users" className="hover:text-foreground">
-            用户
-          </Link>
-          <Link href="/admin/invites" className="hover:text-foreground">
-            邀请码
-          </Link>
+        <nav className="flex items-center gap-2 overflow-x-auto text-sm text-muted-foreground md:gap-3">
+          {NAV.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="whitespace-nowrap hover:text-foreground"
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
-        <div className="ml-auto flex items-center gap-3">
-          <span className="text-sm text-muted-foreground">{user.username}</span>
+        <div className="ml-auto flex shrink-0 items-center gap-3">
+          <span className="hidden text-sm text-muted-foreground sm:inline">
+            {user.username}
+          </span>
           <LogoutButton />
         </div>
       </header>

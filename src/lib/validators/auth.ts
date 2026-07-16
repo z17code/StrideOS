@@ -54,7 +54,8 @@ export const resetPasswordWithTokenSchema = z.object({
 });
 
 export const createInviteCodeSchema = z.object({
-  expiresInDays: z.number().int().min(1).max(365).optional(),
+  /** Omit or null = never expires. */
+  expiresInDays: z.number().int().min(1).max(365).optional().nullable(),
   count: z.number().int().min(1).max(50).optional().default(1),
 });
 
@@ -80,3 +81,4 @@ export const adminDeleteUserSchema = z.object({
     errorMap: () => ({ message: "请完整输入确认文案" }),
   }),
 });
+

@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ADMIN_DELETE_USER_CONFIRMATION } from "@/lib/auth/delete-account-constants";
+import { ClipboardCopy, Check } from "lucide-react";
 
 type AdminUser = {
   id: string;
@@ -20,34 +21,132 @@ type AdminUser = {
   adminNote: string | null;
   role: string;
   isActive: boolean;
+  lastLoginAt: string | null;
   createdAt: string;
 };
 
+type UserDetail = {
+  user: AdminUser;
+  summary: {
+    hasProfile: boolean;
+    onboardingCompleted: boolean;
+    onboardingSkipped: boolean;
+    activeGoal: {
+      distanceType: string;
+      raceDate: string;
+      targetTime: number | null;
+    } | null;
+    activePlan: {
+      id: string;
+      label: string | null;
+      versionNumber: number;
+      startsOn: string;
+      endsOn: string;
+      totalWeeks: number;
+    } | null;
+    lastCheckinDate: string | null;
+    checkinsLast7Days: number;
+    activityCount: number;
+    sessionCount: number;
+    pendingResetTokens: number;
+  };
+};
+
+type StatusFilter = "all" | "active" | "disabled" | "admin";
+
+async function copyText(text: string): Promise<boolean> {
+  try {
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    // fallthrough
+  }
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
+function fmtTime(iso: string | null | undefined) {
+  if (!iso) return "—";
+  try {
+    return new Date(iso).toLocaleString("zh-CN", { hour12: false });
+  } catch {
+    return iso;
+  }
+}
+
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [q, setQ] = useState("");
+  const [status, setStatus] = useState<StatusFilter>("all");
   const [error, setError] = useState<string | null>(null);
-  const [resetToken, setResetToken] = useState<string | null>(null);
+  const [resetInfo, setResetInfo] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editUsername, setEditUsername] = useState("");
   const [editNote, setEditNote] = useState("");
   const [deletingUser, setDeletingUser] = useState<AdminUser | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const [detail, setDetail] = useState<UserDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   const load = useCallback(async () => {
     setError(null);
-    const res = await fetch("/api/v1/admin/users");
+    const params = new URLSearchParams();
+    if (q.trim()) params.set("q", q.trim());
+    if (status !== "all") params.set("status", status);
+    const res = await fetch(`/api/v1/admin/users?${params.toString()}`);
     const data = await res.json();
     if (!res.ok) {
       setError(data?.error?.message ?? "加载失败");
       return;
     }
     setUsers(data.users);
-  }, []);
+  }, [q, status]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (!detailId) {
+      setDetail(null);
+      return;
+    }
+    let cancelled = false;
+    setDetailLoading(true);
+    (async () => {
+      try {
+        const res = await fetch(`/api/v1/admin/users/${detailId}`);
+        const data = await res.json();
+        if (!res.ok) {
+          if (!cancelled) setError(data?.error?.message ?? "加载详情失败");
+          return;
+        }
+        if (!cancelled) setDetail(data as UserDetail);
+      } finally {
+        if (!cancelled) setDetailLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [detailId]);
 
   function startEdit(user: AdminUser) {
     setEditingId(user.id);
@@ -95,6 +194,7 @@ export default function AdminUsersPage() {
       }
       cancelEdit();
       await load();
+      if (detailId === user.id) setDetailId(user.id);
     } finally {
       setBusyId(null);
     }
@@ -123,7 +223,8 @@ export default function AdminUsersPage() {
   async function createResetToken(user: AdminUser) {
     setBusyId(user.id);
     setError(null);
-    setResetToken(null);
+    setResetInfo(null);
+    setCopied(false);
     try {
       const res = await fetch("/api/v1/admin/reset-token", {
         method: "POST",
@@ -135,8 +236,90 @@ export default function AdminUsersPage() {
         setError(data?.error?.message ?? "生成失败");
         return;
       }
-      setResetToken(
-        `用户 ${data.username} 的重置令牌（24h）：\n${data.token}`,
+      const link = data.resetUrl ?? data.resetPath ?? "";
+      setResetInfo(
+        [
+          `用户 ${data.username} · 24h 有效`,
+          `链接：${link}`,
+          `令牌：${data.token}`,
+          "此前未使用的令牌已自动作废",
+        ].join("\n"),
+      );
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function copyResetLink() {
+    if (!resetInfo) return;
+    const line = resetInfo
+      .split("\n")
+      .find((l) => l.startsWith("链接："));
+    const text = line ? line.replace(/^链接：/, "") : resetInfo;
+    const ok = await copyText(text);
+    if (ok) setCopied(true);
+    else setError("复制失败，请手动选择");
+  }
+
+  async function invalidateResetTokens(user: AdminUser) {
+    setBusyId(user.id);
+    setError(null);
+    try {
+      const res = await fetch("/api/v1/admin/reset-token", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data?.error?.message ?? "作废失败");
+        return;
+      }
+      setResetInfo(`已作废 ${data.username} 的未用令牌 ${data.invalidated} 个`);
+      if (detailId === user.id) setDetailId(user.id);
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function kickSessions(user: AdminUser) {
+    if (!window.confirm(`确定踢下线「${user.username}」的全部会话？`)) return;
+    setBusyId(user.id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/v1/admin/users/${user.id}/sessions`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data?.error?.message ?? "操作失败");
+        return;
+      }
+      setResetInfo(`已踢下线 ${data.username}（${data.destroyed} 个会话）`);
+      if (detailId === user.id) setDetailId(user.id);
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function unlockLogin(user: AdminUser) {
+    setBusyId(user.id);
+    setError(null);
+    try {
+      const res = await fetch("/api/v1/admin/rate-limits", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: user.username }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data?.error?.message ?? "解锁失败");
+        return;
+      }
+      setResetInfo(
+        data.deleted
+          ? `已解除 ${user.username} 的登录锁定`
+          : `${user.username} 当前无登录锁定记录`,
       );
     } finally {
       setBusyId(null);
@@ -163,6 +346,7 @@ export default function AdminUsersPage() {
         return;
       }
       closeDelete();
+      if (detailId === deletingUser.id) setDetailId(null);
       await load();
     } finally {
       setBusyId(null);
@@ -174,8 +358,38 @@ export default function AdminUsersPage() {
       <div>
         <h1 className="text-xl font-semibold tracking-tight">用户管理</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          可备注识别用户、修改用户名；停用仅禁用登录；注销将永久删除该用户全部数据
+          搜索筛选、只读摘要；停用仅禁用登录；注销永久删除数据
         </p>
+      </div>
+
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="space-y-1">
+          <Label htmlFor="user-q">搜索用户名</Label>
+          <Input
+            id="user-q"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="输入用户名"
+            className="h-9 w-48"
+          />
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor="user-status">状态</Label>
+          <select
+            id="user-status"
+            className="flex h-9 rounded-md border border-input bg-background px-3 text-sm"
+            value={status}
+            onChange={(e) => setStatus(e.target.value as StatusFilter)}
+          >
+            <option value="all">全部</option>
+            <option value="active">正常</option>
+            <option value="disabled">已停用</option>
+            <option value="admin">管理员</option>
+          </select>
+        </div>
+        <Button size="sm" variant="outline" onClick={() => void load()}>
+          刷新
+        </Button>
       </div>
 
       {error && (
@@ -184,15 +398,33 @@ export default function AdminUsersPage() {
         </p>
       )}
 
-      {resetToken && (
+      {resetInfo && (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">重置令牌（仅显示一次）</CardTitle>
-            <CardDescription>请通过安全渠道交给用户</CardDescription>
+          <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0">
+            <div>
+              <CardTitle className="text-base">操作结果</CardTitle>
+              <CardDescription>重置链接仅显示一次，请安全转发</CardDescription>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              className="touch-manipulation"
+              onClick={() => void copyResetLink()}
+            >
+              {copied ? (
+                <>
+                  <Check className="mr-1 h-4 w-4" /> 已复制
+                </>
+              ) : (
+                <>
+                  <ClipboardCopy className="mr-1 h-4 w-4" /> 复制链接
+                </>
+              )}
+            </Button>
           </CardHeader>
           <CardContent>
             <pre className="whitespace-pre-wrap break-all rounded-md bg-muted p-3 text-xs">
-              {resetToken}
+              {resetInfo}
             </pre>
           </CardContent>
         </Card>
@@ -206,15 +438,12 @@ export default function AdminUsersPage() {
             </CardTitle>
             <CardDescription>
               将永久删除该用户的计划、打卡、训练记录、跑鞋、力量课、比赛策略与会话，不可恢复。
-              停用账号不会删数据；若只需禁止登录请用「停用」。
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="space-y-2">
-              <Label htmlFor="admin-delete-confirm">
-                请完整输入确认文案
-              </Label>
-              <p className="text-xs text-muted-foreground font-mono break-all select-all">
+              <Label htmlFor="admin-delete-confirm">请完整输入确认文案</Label>
+              <p className="break-all font-mono text-xs text-muted-foreground select-all">
                 {ADMIN_DELETE_USER_CONFIRMATION}
               </p>
               <Input
@@ -253,6 +482,86 @@ export default function AdminUsersPage() {
         </Card>
       )}
 
+      {detailId && (
+        <Card>
+          <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0">
+            <div>
+              <CardTitle className="text-base">
+                用户摘要
+                {detail ? ` · ${detail.user.username}` : ""}
+              </CardTitle>
+              <CardDescription>只读支持信息，不含训练明细全文</CardDescription>
+            </div>
+            <Button size="sm" variant="ghost" onClick={() => setDetailId(null)}>
+              关闭
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            {detailLoading && (
+              <p className="text-muted-foreground">加载中…</p>
+            )}
+            {detail && (
+              <dl className="grid gap-2 sm:grid-cols-2">
+                <div>
+                  <dt className="text-muted-foreground">状态</dt>
+                  <dd>
+                    {detail.user.isActive ? "正常" : "已停用"} · {detail.user.role}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">注册 / 最近登录</dt>
+                  <dd>
+                    {fmtTime(detail.user.createdAt)} / {fmtTime(detail.user.lastLoginAt)}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">Onboarding</dt>
+                  <dd>
+                    {detail.summary.onboardingCompleted
+                      ? "已完成"
+                      : detail.summary.onboardingSkipped
+                        ? "已跳过"
+                        : detail.summary.hasProfile
+                          ? "进行中"
+                          : "无档案"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">活跃目标</dt>
+                  <dd>
+                    {detail.summary.activeGoal
+                      ? `${detail.summary.activeGoal.distanceType} · ${detail.summary.activeGoal.raceDate}`
+                      : "无"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">活跃计划</dt>
+                  <dd>
+                    {detail.summary.activePlan
+                      ? `v${detail.summary.activePlan.versionNumber} · ${detail.summary.activePlan.startsOn}→${detail.summary.activePlan.endsOn}（${detail.summary.activePlan.totalWeeks}周）`
+                      : "无"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">打卡 / 活动 / 会话</dt>
+                  <dd>
+                    最近打卡 {detail.summary.lastCheckinDate ?? "—"} · 近7日{" "}
+                    {detail.summary.checkinsLast7Days} 次 · 活动{" "}
+                    {detail.summary.activityCount} · 会话{" "}
+                    {detail.summary.sessionCount} · 未用重置令牌{" "}
+                    {detail.summary.pendingResetTokens}
+                  </dd>
+                </div>
+                <div className="sm:col-span-2">
+                  <dt className="text-muted-foreground">备注</dt>
+                  <dd>{detail.user.adminNote?.trim() || "—"}</dd>
+                </div>
+              </dl>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -261,8 +570,8 @@ export default function AdminUsersPage() {
                 <tr>
                   <th className="px-4 py-3 font-medium">用户名</th>
                   <th className="px-4 py-3 font-medium">备注</th>
-                  <th className="px-4 py-3 font-medium">角色</th>
                   <th className="px-4 py-3 font-medium">状态</th>
+                  <th className="px-4 py-3 font-medium">最近登录</th>
                   <th className="px-4 py-3 font-medium">操作</th>
                 </tr>
               </thead>
@@ -272,7 +581,7 @@ export default function AdminUsersPage() {
                   return (
                     <tr
                       key={u.id}
-                      className="border-b border-border last:border-0 align-top"
+                      className="border-b border-border align-top last:border-0"
                     >
                       <td className="px-4 py-3">
                         {isEditing ? (
@@ -283,8 +592,17 @@ export default function AdminUsersPage() {
                             aria-label="用户名"
                           />
                         ) : (
-                          <span className="font-medium">{u.username}</span>
+                          <button
+                            type="button"
+                            className="font-medium text-left hover:underline"
+                            onClick={() => setDetailId(u.id)}
+                          >
+                            {u.username}
+                          </button>
                         )}
+                        <div className="mt-0.5 text-xs text-muted-foreground">
+                          {u.role}
+                        </div>
                       </td>
                       <td className="px-4 py-3">
                         {isEditing ? (
@@ -302,7 +620,6 @@ export default function AdminUsersPage() {
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground">{u.role}</td>
                       <td className="px-4 py-3">
                         <span
                           className={
@@ -311,6 +628,9 @@ export default function AdminUsersPage() {
                         >
                           {u.isActive ? "正常" : "已停用"}
                         </span>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
+                        {fmtTime(u.lastLoginAt)}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap gap-2">
@@ -333,14 +653,24 @@ export default function AdminUsersPage() {
                               </Button>
                             </>
                           ) : (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={busyId === u.id}
-                              onClick={() => startEdit(u)}
-                            >
-                              编辑
-                            </Button>
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={busyId === u.id}
+                                onClick={() => setDetailId(u.id)}
+                              >
+                                摘要
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={busyId === u.id}
+                                onClick={() => startEdit(u)}
+                              >
+                                编辑
+                              </Button>
+                            </>
                           )}
                           {u.role !== "admin" && (
                             <Button
@@ -359,6 +689,30 @@ export default function AdminUsersPage() {
                             onClick={() => void createResetToken(u)}
                           >
                             重置令牌
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={busyId === u.id || isEditing}
+                            onClick={() => void kickSessions(u)}
+                          >
+                            踢下线
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={busyId === u.id || isEditing}
+                            onClick={() => void unlockLogin(u)}
+                          >
+                            解锁登录
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            disabled={busyId === u.id || isEditing}
+                            onClick={() => void invalidateResetTokens(u)}
+                          >
+                            作废令牌
                           </Button>
                           <Button
                             size="sm"
@@ -391,4 +745,3 @@ export default function AdminUsersPage() {
     </div>
   );
 }
-

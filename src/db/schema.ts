@@ -61,6 +61,7 @@ export const users = pgTable(
     adminNote: text("admin_note"),
     role: userRoleEnum("role").notNull().default("user"),
     isActive: boolean("is_active").notNull().default(true),
+    lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -152,6 +153,34 @@ export const authRateLimits = pgTable(
   },
   (t) => [uniqueIndex("auth_rate_limits_bucket_uidx").on(t.bucket)],
 );
+
+/**
+ * Lightweight admin action audit trail (who did what, when).
+ * adminId is soft (ON DELETE SET NULL); adminUsername is a snapshot.
+ */
+export const adminAuditLogs = pgTable(
+  "admin_audit_logs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    adminId: uuid("admin_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    adminUsername: text("admin_username").notNull(),
+    action: text("action").notNull(),
+    targetType: text("target_type"),
+    targetId: text("target_id"),
+    summary: text("summary"),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("admin_audit_logs_created_at_idx").on(t.createdAt),
+    index("admin_audit_logs_admin_id_idx").on(t.adminId),
+  ],
+);
+
 
 // ─── Runner profile & goals ──────────────────────────────
 
@@ -492,3 +521,5 @@ export type StrengthSession = typeof strengthSessions.$inferSelect;
 export type RaceStrategy = typeof raceStrategies.$inferSelect;
 export type NewRaceStrategy = typeof raceStrategies.$inferInsert;
 export type AuthRateLimit = typeof authRateLimits.$inferSelect;
+export type AdminAuditLog = typeof adminAuditLogs.$inferSelect;
+export type NewAdminAuditLog = typeof adminAuditLogs.$inferInsert;
