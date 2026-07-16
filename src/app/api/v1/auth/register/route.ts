@@ -8,6 +8,7 @@ import {
   setSessionCookie,
 } from "@/lib/auth/session";
 import { jsonCreated, jsonError, type ApiErrorBody } from "@/lib/auth/guards";
+import { isInviteConsumed } from "@/lib/auth/invite-status";
 import { registerSchema } from "@/lib/validators/auth";
 import { firstZodMessage } from "@/lib/validators/format";
 import {
@@ -73,10 +74,14 @@ export async function POST(request: Request) {
   const code = inviteCode.trim().toUpperCase();
 
   const invite = await db.query.inviteCodes.findFirst({
-    where: and(eq(inviteCodes.code, code), isNull(inviteCodes.usedByUserId)),
+    where: and(
+      eq(inviteCodes.code, code),
+      isNull(inviteCodes.usedAt),
+      isNull(inviteCodes.usedByUserId),
+    ),
   });
 
-  if (!invite) {
+  if (!invite || isInviteConsumed(invite)) {
     const after = await hitRateLimit(ipKey, REGISTER_IP_POLICY);
     if (!after.allowed) return lockedResponse(after);
     return jsonError(400, "INVALID_INVITE", "邀请码无效或已被使用");
@@ -118,7 +123,11 @@ export async function POST(request: Request) {
         usedAt: new Date(),
       })
       .where(
-        and(eq(inviteCodes.id, invite.id), isNull(inviteCodes.usedByUserId)),
+        and(
+          eq(inviteCodes.id, invite.id),
+          isNull(inviteCodes.usedAt),
+          isNull(inviteCodes.usedByUserId),
+        ),
       )
       .returning();
 

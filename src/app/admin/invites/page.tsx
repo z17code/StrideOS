@@ -166,7 +166,7 @@ export default function AdminInvitesPage() {
               </thead>
               <tbody>
                 {codes.map((c) => {
-                  const used = Boolean(c.usedByUserId);
+                  const used = Boolean(c.usedAt || c.usedByUserId);
                   const expired =
                     c.expiresAt && new Date(c.expiresAt) < new Date();
                   return (

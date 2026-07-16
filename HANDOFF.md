@@ -211,7 +211,7 @@ npm run db:migrate
 |----|------|
 | `users` | 用户 |
 | `sessions` | 登录会话 |
-| `invite_codes` | 邀请码 |
+| `invite_codes` | 邀请码；**单次使用永久有效消耗**：`usedAt` 为已用标记（用户注销后 `usedByUserId` 置空但 `usedAt` 保留，不可复用） |
 | `password_reset_tokens` | 密码重置令牌 |
 | `runner_profiles` | 跑者档案（含 `onboarding_completed_at` / `onboarding_skipped_at`） |
 | `race_goals` | 比赛目标（单活跃） |
@@ -380,7 +380,7 @@ src/
 | PUT  | `/api/v1/admin/users/:id` | `isActive` / `username` / `adminNote` |
 | DELETE | `/api/v1/admin/users/:id` | 永久注销；body `{ confirmation: "确认注销该用户并永久删除全部数据" }`；不可注销自己/唯一管理员 |
 | GET/POST | `/api/v1/admin/invite-codes` | |
-| DELETE | `/api/v1/admin/invite-codes/:id` | |
+| DELETE | `/api/v1/admin/invite-codes/:id` | 仅未使用（`usedAt` 为空）可撤销；已用码不可撤销 |
 | POST | `/api/v1/admin/reset-token` | 生成重置令牌 |
 
 ---

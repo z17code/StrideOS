@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { inviteCodes } from "@/db/schema";
 import { jsonError, jsonOk, requireAdmin } from "@/lib/auth/guards";
+import { isInviteConsumed } from "@/lib/auth/invite-status";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -17,7 +18,7 @@ export async function DELETE(_request: Request, { params }: Params) {
   if (!existing) {
     return jsonError(404, "NOT_FOUND", "邀请码不存在");
   }
-  if (existing.usedByUserId) {
+  if (isInviteConsumed(existing)) {
     return jsonError(400, "ALREADY_USED", "已使用的邀请码无法撤销");
   }
 

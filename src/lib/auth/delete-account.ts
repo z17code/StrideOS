@@ -39,6 +39,8 @@ async function countAdmins(excludeUserId?: string): Promise<number> {
  * Order matters: `plan_versions.race_goal_id` is ON DELETE RESTRICT, so plans
  * must be removed before the user row (which would cascade-delete race goals).
  * Invite codes created by an admin are reassigned to another admin when possible.
+ * Codes redeemed by the deleted user stay permanently consumed via usedAt
+ * (usedByUserId is only SET NULL by FK; registration checks usedAt).
  */
 export async function permanentlyDeleteUser(
   userId: string,

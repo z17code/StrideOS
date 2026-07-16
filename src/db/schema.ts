@@ -87,14 +87,19 @@ export const sessions = pgTable(
   ],
 );
 
+/** Invite codes are single-use forever. usedAt is the permanent consumed flag;
+ * usedByUserId is only a soft link (ON DELETE SET NULL when the user is removed).
+ * Registration / admin UI must check usedAt, never only usedByUserId. */
 export const inviteCodes = pgTable(
   "invite_codes",
   {
     id: uuid("id").defaultRandom().primaryKey(),
     code: text("code").notNull(),
+    /** Soft link to redeemer; cleared on user delete. Do not use alone for validity. */
     usedByUserId: uuid("used_by_user_id").references(() => users.id, {
       onDelete: "set null",
     }),
+    /** Permanent consume marker. Once set, code stays invalid after user deletion. */
     usedAt: timestamp("used_at", { withTimezone: true }),
     createdByAdminId: uuid("created_by_admin_id")
       .notNull()

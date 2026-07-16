@@ -90,7 +90,14 @@ android/                # Capacitor Android 工程
     - 用户「我的」页可自助注销：须完整输入确认文案 `确认注销并永久删除全部数据`（长文案防误触）；`DELETE /api/v1/me`。
     - 管理员用户管理可注销任意用户：确认文案 `确认注销该用户并永久删除全部数据`；`DELETE /api/v1/admin/users/:id`（body 含 confirmation）。
     - 服务：`permanentlyDeleteUser`（`src/lib/auth/delete-account.ts`）— 先删 `plan_versions`（因 `race_goal_id` RESTRICT），再删 `users`（其余表 cascade）；管理员创建的邀请码会改派给其他管理员。
+    - **已用邀请码永久无效**：注册/占用以 `invite_codes.usedAt IS NOT NULL` 为准，不是 `usedByUserId`。用户注销后 FK 会把 `usedByUserId` SET NULL，但 `usedAt` 保留，码仍不可再次注册。
     - 禁止：管理端注销自己；注销系统中**唯一**管理员。停用（`isActive`）≠ 注销。
+
+17. **已用邀请码永久无效（注销后不可复用）**：
+    - 判定：`usedAt` 非空 = 已使用（注册查询、claim 条件、管理端状态/撤销均用 `usedAt`）。
+    - `usedByUserId` 仅作软关联；用户永久删除时 ON DELETE SET NULL，**不得**据此把码重新标为可用。
+    - 禁止回退到仅检查 `isNull(usedByUserId)` 的注册逻辑。
+
 
 ---
 
@@ -171,6 +178,6 @@ npm run cap:open      # Android Studio 打开工程
 2. `HANDOFF.md` 日期与相关 Phase / API / 迁移表是否对齐  
 3. 若有新迁移：`drizzle/` + journal + HANDOFF 迁移说明  
 
-*最后文档维护提醒写入：2026-07-15（账号永久注销：我的 + 管理端）*
+*最后文档维护提醒写入：2026-07-15（已用邀请码永久无效；账号永久注销）*
 
 
