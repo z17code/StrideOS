@@ -67,7 +67,7 @@ export default function RaceDayPage() {
           ← 工具
         </Link>
         <h1 className="page-title mt-1">比赛倒计时清单</h1>
-        <p className="page-subtitle">赛前 4 周到比赛当天 · 勾选保存在本机</p>
+        <p className="page-subtitle">赛前 4 周到比赛当天，勾选完成项</p>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -135,7 +135,7 @@ export default function RaceDayPage() {
         <Link href="/tools/splits" className="underline hover:text-foreground">
           分段配速表
         </Link>
-        。清单仅存浏览器，不占用云数据库。
+        。
       </p>
     </div>
   );

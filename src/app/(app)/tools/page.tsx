@@ -125,7 +125,7 @@ const GROUPS: Array<{ title: string; items: ToolItem[] }> = [
       {
         href: "/tools/load",
         title: "周负荷一览",
-        description: "近 4 周计划 vs 实际（只读）",
+        description: "近 4 周计划 vs 实际",
         icon: CalendarCheck,
       },
       {
@@ -180,7 +180,7 @@ export default async function ToolsPage() {
       <div>
         <h1 className="page-title">工具</h1>
         <p className="page-subtitle">
-          计算器与清单以本地/静态为主，不额外占用数据库空间
+          成绩、配速、恢复与装备相关小工具
         </p>
       </div>
 

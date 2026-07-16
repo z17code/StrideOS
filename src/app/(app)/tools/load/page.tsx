@@ -83,7 +83,7 @@ export default function LoadPage() {
             ← 工具
           </Link>
           <h1 className="page-title mt-1">周负荷一览</h1>
-          <p className="page-subtitle">近 4 周计划跑量 vs 实际完成（只读）</p>
+          <p className="page-subtitle">近 4 周计划跑量 vs 实际完成</p>
         </div>
         <Button type="button" size="sm" variant="outline" className="touch-manipulation" onClick={() => void load()}>
           刷新
@@ -197,7 +197,7 @@ export default function LoadPage() {
           </Card>
 
           <p className="text-xs text-muted-foreground">
-            只读汇总已有计划与训练记录，不写数据库。无活跃计划时仅显示实际跑量。
+            根据你的计划与训练记录汇总。若暂无活跃计划，仅显示实际跑量。
           </p>
         </>
       ) : null}

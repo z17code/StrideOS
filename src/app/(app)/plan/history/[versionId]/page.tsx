@@ -59,7 +59,7 @@ export default async function PlanHistoryPage({ params }: Params) {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">课表快照</CardTitle>
-          <CardDescription>只读历史，共 {dto.workouts?.length ?? 0} 节</CardDescription>
+          <CardDescription>共 {dto.workouts?.length ?? 0} 节课</CardDescription>
         </CardHeader>
         <CardContent>
           <ul className="divide-y divide-border">

@@ -26,7 +26,7 @@ export default async function VdotGuidePage() {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base">是什么</CardTitle>
-          <CardDescription>纯说明页，无计算、无存储</CardDescription>
+          <CardDescription>概念介绍</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3 text-sm leading-relaxed text-muted-foreground">
           {VDOT_GUIDE.paragraphs.map((p) => (

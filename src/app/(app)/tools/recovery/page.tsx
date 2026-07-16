@@ -42,7 +42,7 @@ export default function RecoveryPage() {
           ← 工具
         </Link>
         <h1 className="page-title mt-1">热身 / 放松 / 拉伸</h1>
-        <p className="page-subtitle">可勾选清单，数据仅在本机会话中</p>
+        <p className="page-subtitle">课前课后可勾选完成</p>
       </div>
 
       <div className="flex flex-wrap gap-2">

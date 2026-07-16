@@ -28,7 +28,7 @@ async function readApiError(res: Response): Promise<string> {
     return data?.error?.message ?? "登录失败";
   } catch {
     if (res.status === 504 || res.status === 408) {
-      return "请求超时，数据库可能正在唤醒，请再试一次";
+      return "请求超时，请稍后再试";
     }
     if (res.status >= 500) {
       return "服务暂时不可用，请稍后重试";

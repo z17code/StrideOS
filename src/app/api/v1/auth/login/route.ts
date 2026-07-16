@@ -139,7 +139,7 @@ export async function POST(request: Request) {
     const message = err instanceof Error ? err.message : String(err);
 
     if (/DATABASE_URL is not set/i.test(message)) {
-      return jsonError(503, "DB_NOT_CONFIGURED", "服务端数据库未配置，请联系管理员");
+      return jsonError(503, "DB_NOT_CONFIGURED", "服务暂时不可用，请联系管理员");
     }
 
     if (
@@ -148,7 +148,7 @@ export async function POST(request: Request) {
       return jsonError(
         503,
         "DB_SCHEMA_OUTDATED",
-        "数据库结构未同步，请管理员对生产库执行 npm run db:migrate",
+        "服务暂时不可用，请联系管理员",
       );
     }
 
@@ -160,7 +160,7 @@ export async function POST(request: Request) {
       return jsonError(
         503,
         "DB_UNAVAILABLE",
-        "数据库暂时不可用（可能冷启动），请几秒后重试",
+        "服务暂时繁忙，请几秒后重试",
       );
     }
 
