@@ -55,3 +55,15 @@ export async function POST(request: Request) {
 
   return jsonCreated({ inviteCodes: created });
 }
+
+/**
+ * Hard-delete all invite codes (admin clear).
+ * DELETE /api/v1/admin/invite-codes
+ */
+export async function DELETE() {
+  const auth = await requireAdmin();
+  if (auth.error) return auth.error;
+
+  const deleted = await db.delete(inviteCodes).returning({ id: inviteCodes.id });
+  return jsonOk({ ok: true, deletedCount: deleted.length });
+}

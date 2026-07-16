@@ -2,14 +2,12 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { inviteCodes } from "@/db/schema";
 import { jsonError, jsonOk, requireAdmin } from "@/lib/auth/guards";
-import { isInviteConsumed } from "@/lib/auth/invite-status";
 
 type Params = { params: Promise<{ id: string }> };
 
 /**
- * Permanently delete an unused invite code (hard delete).
- * Code string is removed from DB → cannot be used to register.
- * Already-consumed codes cannot be deleted (keep audit of who registered).
+ * Hard-delete any invite code (used or unused).
+ * Removes the row so the code string can never be used to register.
  */
 export async function DELETE(_request: Request, { params }: Params) {
   const auth = await requireAdmin();
@@ -22,9 +20,6 @@ export async function DELETE(_request: Request, { params }: Params) {
   });
   if (!existing) {
     return jsonError(404, "NOT_FOUND", "邀请码不存在");
-  }
-  if (isInviteConsumed(existing)) {
-    return jsonError(400, "ALREADY_USED", "已使用的邀请码无法删除");
   }
 
   await db.delete(inviteCodes).where(eq(inviteCodes.id, id));

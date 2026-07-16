@@ -380,7 +380,8 @@ src/
 | PUT  | `/api/v1/admin/users/:id` | `isActive` / `username` / `adminNote` |
 | DELETE | `/api/v1/admin/users/:id` | 永久注销；body `{ confirmation: "确认注销该用户并永久删除全部数据" }`；不可注销自己/唯一管理员 |
 | GET/POST | `/api/v1/admin/invite-codes` | |
-| DELETE | `/api/v1/admin/invite-codes/:id` | 硬删除未使用码（删行，永久不可用）；已用码不可删 |
+| DELETE | `/api/v1/admin/invite-codes/:id` | 硬删除任意码（删行） |
+| DELETE | `/api/v1/admin/invite-codes` | 一键清空全部邀请码 |
 | POST | `/api/v1/admin/reset-token` | 生成重置令牌 |
 
 ---

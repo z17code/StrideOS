@@ -98,10 +98,12 @@ android/                # Capacitor Android 工程
     - `usedByUserId` 仅作软关联；用户永久删除时 ON DELETE SET NULL，**不得**据此把码重新标为可用。
     - 禁止回退到仅检查 `isNull(usedByUserId)` 的注册逻辑。
 
-18. **邀请码删除（永久不可用）**：
-    - 管理端「邀请码」对未使用码可点「删除」；`DELETE /api/v1/admin/invite-codes/:id`。
-    - **硬删除**：从 `invite_codes` 表删行，码字符串不再存在 → 无法注册；不占库空间。
-    - 已使用的邀请码不可删（保留审计）；仅 `usedAt`、无 redeemer（用户已注销）列表仍显示「已失效」。
+18. **邀请码删除 / 清空（硬删除，永久不可用）**：
+    - 管理端明文显示邀请码；每行均可「删除」；底部「一键清空全部」。
+    - 单删：`DELETE /api/v1/admin/invite-codes/:id`（可用/已用/已失效均可删）。
+    - 清空：`DELETE /api/v1/admin/invite-codes`（删全部行）。
+    - **硬删除**行 → 码字符串不存在，无法再注册；不占库空间。
+    - 复制：clipboard API + `execCommand` 回退（修手机复制失败）；码文本 `select-all` 可长按手选。
 
 
 ---
@@ -183,6 +185,6 @@ npm run cap:open      # Android Studio 打开工程
 2. `HANDOFF.md` 日期与相关 Phase / API / 迁移表是否对齐  
 3. 若有新迁移：`drizzle/` + journal + HANDOFF 迁移说明  
 
-*最后文档维护提醒写入：2026-07-16（邀请码硬删除；配速/BMI 无默认示例数据）*
+*最后文档维护提醒写入：2026-07-16（邀请码全量删除/一键清空；明文+手机可复制；配速/BMI 无默认数据）*
 
 
