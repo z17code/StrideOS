@@ -26,6 +26,12 @@ import type {
 
 // ─── DTO mappers ─────────────────────────────────────────
 
+/** Strip legacy "CODE: " prefix so UI only shows Chinese messages. */
+function displayPlanWarning(warning: string): string {
+  const match = warning.match(/^[A-Z][A-Z0-9_]+:\s*([\s\S]+)$/);
+  return match ? match[1] : warning;
+}
+
 export function mapProfile(p: RunnerProfile) {
   const races = p.recentRaceTimes ?? [];
   const first = races[0];
@@ -97,7 +103,7 @@ export function mapPlanVersion(
     endsOn: v.endsOn,
     totalWeeks: v.totalWeeks,
     label: v.label,
-    warnings: v.warnings,
+    warnings: (v.warnings ?? []).map(displayPlanWarning),
     isActive: v.isActive,
     raceGoalId: v.raceGoalId,
     createdAt: v.createdAt,
@@ -612,7 +618,7 @@ export async function generateAndPersistPlan(
         startsOn: generated.startsOn,
         endsOn: generated.endsOn,
         totalWeeks: generated.totalWeeks,
-        warnings: generated.warnings.map((w) => `${w.code}: ${w.message}`),
+        warnings: generated.warnings.map((w) => w.message),
         isActive: false,
       })
       .returning();

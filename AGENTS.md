@@ -117,6 +117,10 @@ android/                # Capacitor Android 工程
     - 邀请码：过期预设 7/30/90/不过期；状态筛选；复制全部可用/新生成。
 
 
+
+20. **工具箱扩展（纯前端 / 只读）**：hub 分组为「成绩与配速 / 身体与恢复 / 计划与装备 / 换算与修正」。新增：训练配速表、心率区间、分段配速表、间歇设计、长跑补给、热身放松拉伸、周负荷一览（读计划+活动，不写库）、比赛倒计时清单、备注模板、单位换算、坡度修正、配速↔功率、VDOT 说明；跑鞋页寿命进度条（默认 700 km）。计算器与清单逻辑在 `src/lib/tools/*`，**不新增 Neon 表**；勾选状态仅 localStorage。
+21. **计划提示文案**：入库与展示只保留中文 `message`，不再拼接 `INSUFFICIENT_BASE:` 等英文 code；读旧数据时剥掉 `CODE: ` 前缀。
+
 ---
 
 ## 5. 认证与角色
@@ -132,7 +136,7 @@ android/                # Capacitor Android 工程
 ```
 注册/登录 →（可选）onboarding → 比赛目标 → plans/generate
     → 周历执行 → 打卡 + 训练记录 → adjustments 调课 → insights 报告
-工具：predict / pace / bmi / race(VDOT 策略) / shoes / strength
+工具：predict / paces / pace / splits / intervals / race / vdot / bmi / heart-rate / recovery / fueling / load / race-day / notes / shoes / units / grade / power / strength
 ```
 
 - 计划生成：`src/lib/plans/engine.ts`（确定性）。  
@@ -196,7 +200,7 @@ npm run cap:open      # Android Studio 打开工程
 2. `HANDOFF.md` 日期与相关 Phase / API / 迁移表是否对齐  
 3. 若有新迁移：`drizzle/` + journal + HANDOFF 迁移说明  
 
-*最后文档维护提醒写入：2026-07-16（管理后台 P0/P1：概览/用户摘要/限流/审计/重置链接/邀请码筛选）*
+*最后文档维护提醒写入：2026-07-16（工具箱 P0–P2 扩展；计划提示去英文 code）*
 
 
 

@@ -12,6 +12,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { assessShoeLife, DEFAULT_SHOE_LIFE_KM } from "@/lib/tools/shoe-life";
+import { cn } from "@/lib/utils";
 
 interface ShoeData {
   id: string;
@@ -136,7 +138,7 @@ export default function ShoesPage() {
         <div>
           <h1 className="text-xl font-semibold tracking-tight">跑鞋管理</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            记录跑鞋与累计里程
+            记录跑鞋、累计里程与寿命进度（默认 700 km）
           </p>
         </div>
         <Link
@@ -252,15 +254,51 @@ export default function ShoesPage() {
                         </span>
                       )}
                     </div>
-                    <div className="mt-0.5 text-xs text-muted-foreground">
-                      {formatKm(s.totalKm)}
-                      {s.purchaseDate ? ` · 购于 ${s.purchaseDate}` : ""}
-                      {s.totalKm >= 700 && !s.isRetired && (
-                        <span className="ml-2 text-destructive">
-                          建议考虑退役
-                        </span>
-                      )}
-                    </div>
+                    {(() => {
+                      const life = assessShoeLife({
+                        totalKm: s.totalKm,
+                        lifeKm: DEFAULT_SHOE_LIFE_KM,
+                      });
+                      return (
+                        <div className="mt-1.5 space-y-1">
+                          <div className="text-xs text-muted-foreground">
+                            {formatKm(s.totalKm)} / {life.lifeKm} km
+                            {s.purchaseDate ? ` · 购于 ${s.purchaseDate}` : ""}
+                            {!s.isRetired && (
+                              <span
+                                className={cn(
+                                  "ml-2",
+                                  life.status === "retire" && "text-destructive",
+                                  life.status === "warn" && "text-orange-500",
+                                  life.status === "fresh" &&
+                                    "text-emerald-600 dark:text-emerald-400",
+                                )}
+                              >
+                                {life.statusLabel}
+                                {life.remainingKm > 0
+                                  ? ` · 约剩 ${life.remainingKm} km`
+                                  : ""}
+                              </span>
+                            )}
+                          </div>
+                          {!s.isRetired && (
+                            <div className="h-1.5 max-w-[220px] overflow-hidden rounded-full bg-muted">
+                              <div
+                                className={cn(
+                                  "h-full rounded-full",
+                                  life.status === "retire" && "bg-destructive",
+                                  life.status === "warn" && "bg-orange-500",
+                                  life.status === "ok" && "bg-foreground/70",
+                                  life.status === "fresh" &&
+                                    "bg-emerald-500/80",
+                                )}
+                                style={{ width: `${Math.min(100, life.percentUsed)}%` }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                   <div className="flex shrink-0 gap-2">
                     {!s.isRetired && (
