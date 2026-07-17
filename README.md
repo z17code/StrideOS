@@ -47,6 +47,8 @@ cp .env.example .env.local
 | `ADMIN_USERNAME` / `ADMIN_PASSWORD` | `db:seed` 种子管理员 |
 | `AI_BASE_URL` / `AI_API_KEY` / `AI_MODEL` | 可选；周报 AI 评语（OpenAI-compatible） |
 | `STRENGTH_TEMPLATES_JSON` | 可选；覆盖默认力量模板 |
+| `APP_URL` / `NEXT_PUBLIC_APP_URL` | 可选；额外允许的 Origin（CSRF 校验） |
+| `FORCE_SECURE_COOKIES` | 可选；设为 `1` 强制 Cookie `Secure` |
 
 生产示例：
 
@@ -148,9 +150,11 @@ npm run dev
 - [x] Android Capacitor WebView 壳（加载 `stride-os-livid.vercel.app`）
 - [x] 界面语言切换（导航 +「我的」页；Cookie `strideos_locale`）
 - [x] Client 组件禁止直接 import DB service（力量模板见 `src/lib/strength/templates.ts`）
-- [x] 外观主题（跟随系统 / 浅色 / 深色）
+- [x] 外观主题（跟随系统 / 浅色 / 深色）+ 可切换主题色
 - [x] 帮助与反馈（微信号 z17code）
-- [x] 管理员：用户备注 + 修改用户名
+- [x] 管理员：用户备注 + 修改用户名；概览 / 限流 / 审计 / 踢下线
+- [x] 登录限流锁定 + 安全响应头
+- [x] 用户自助注销 / 管理员永久注销
 - [x] 打卡上海时区日期；计划周历边界隐藏翻页
 - [x] 入门成绩/目标：时分秒输入框
 
@@ -158,15 +162,17 @@ npm run dev
 
 ### 认证 / 账号
 
-| 方法 | 路径 |
-|------|------|
-| POST | `/api/v1/auth/register` |
-| POST | `/api/v1/auth/login` |
-| POST | `/api/v1/auth/logout` |
-| POST | `/api/v1/auth/reset-password` |
-| GET  | `/api/v1/me` |
-| POST | `/api/v1/me/locale` |
-| GET/PUT | `/api/v1/me/profile` |
+| 方法 | 路径 | 备注 |
+|------|------|------|
+| POST | `/api/v1/auth/register` | |
+| POST | `/api/v1/auth/login` | |
+| POST | `/api/v1/auth/logout` | |
+| POST | `/api/v1/auth/reset-password` | |
+| GET  | `/api/v1/health` | 公共就绪探测（DB `select 1`，无密钥） |
+| GET  | `/api/v1/me` | |
+| DELETE | `/api/v1/me` | 自助注销；body 确认文案见 HANDOFF |
+| POST | `/api/v1/me/locale` | |
+| GET/PUT | `/api/v1/me/profile` | |
 
 ### Onboarding / 目标 / 计划
 

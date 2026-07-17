@@ -51,11 +51,25 @@ export function AppNav() {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex md:w-56 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-card">
-        <div className="flex h-14 items-center border-b border-border px-5">
-          <Link href="/today" className="text-sm font-semibold tracking-tight">
-            StrideOS
-          </Link>
+      <aside className="hidden md:flex md:w-60 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-card">
+        <div className="flex h-14 items-center gap-2.5 border-b border-border px-5">
+          <span
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground shadow-sm"
+            aria-hidden
+          >
+            S
+          </span>
+          <div className="min-w-0">
+            <Link
+              href="/today"
+              className="block text-sm font-semibold tracking-tight"
+            >
+              StrideOS
+            </Link>
+            <p className="truncate text-[11px] text-muted-foreground">
+              长跑训练
+            </p>
+          </div>
         </div>
         <nav className="flex flex-1 flex-col gap-1 p-3">
           {navItems.map(({ href, label, icon: Icon }) => {
@@ -66,7 +80,7 @@ export function AppNav() {
                 key={href}
                 href={href}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
+                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors touch-manipulation",
                   active
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -78,9 +92,14 @@ export function AppNav() {
             );
           })}
         </nav>
+        <div className="border-t border-border p-4">
+          <p className="text-[11px] leading-relaxed text-muted-foreground">
+            计划 · 打卡 · 洞察
+          </p>
+        </div>
       </aside>
 
-      {/* Mobile bottom nav — solid bg-card so dark mode never falls back to light opacity mix */}
+      {/* Mobile bottom nav — solid bg-card; active uses primary tint */}
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card safe-pb md:hidden">
         <ul className="grid grid-cols-6 px-1 pt-1">
           {navItems.map(({ href, label, icon: Icon }) => {
@@ -92,15 +111,13 @@ export function AppNav() {
                   href={href}
                   className={cn(
                     "flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-lg px-0.5 py-1.5 text-[10px] leading-tight touch-manipulation select-none transition-all active:scale-95 active:opacity-70",
-                    active
-                      ? "text-foreground"
-                      : "text-muted-foreground",
+                    active ? "text-primary" : "text-muted-foreground",
                   )}
                 >
                   <span
                     className={cn(
                       "flex h-7 w-7 items-center justify-center rounded-full transition-colors",
-                      active && "bg-muted",
+                      active && "bg-primary-soft",
                     )}
                   >
                     <Icon
@@ -110,7 +127,7 @@ export function AppNav() {
                       )}
                     />
                   </span>
-                  <span className={cn(active && "font-medium")}>{label}</span>
+                  <span className={cn(active && "font-semibold")}>{label}</span>
                 </Link>
               </li>
             );

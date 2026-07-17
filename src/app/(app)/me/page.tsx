@@ -72,11 +72,14 @@ export default async function MePage() {
             }}
           />
           <ThemeSwitcher
+            locale={locale}
             labels={{
               appearance: t.me.appearance,
               system: t.me.themeSystem,
               light: t.me.themeLight,
               dark: t.me.themeDark,
+              accent: t.me.accent,
+              accentHint: t.me.accentHint,
             }}
           />
         </CardContent>

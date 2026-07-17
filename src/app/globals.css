@@ -44,6 +44,92 @@
   --color-ring: #fafafa;
 }
 
+/* Accent themes — primary / ring follow data-accent on <html> */
+html[data-accent="zinc"] {
+  --color-primary: #0a0a0a;
+  --color-primary-foreground: #fafafa;
+  --color-ring: #0a0a0a;
+}
+html.dark[data-accent="zinc"] {
+  --color-primary: #fafafa;
+  --color-primary-foreground: #09090b;
+  --color-ring: #fafafa;
+}
+
+html[data-accent="emerald"] {
+  --color-primary: #059669;
+  --color-primary-foreground: #ffffff;
+  --color-ring: #059669;
+}
+html.dark[data-accent="emerald"] {
+  --color-primary: #34d399;
+  --color-primary-foreground: #052e16;
+  --color-ring: #34d399;
+}
+
+html[data-accent="sky"] {
+  --color-primary: #0284c7;
+  --color-primary-foreground: #ffffff;
+  --color-ring: #0284c7;
+}
+html.dark[data-accent="sky"] {
+  --color-primary: #38bdf8;
+  --color-primary-foreground: #082f49;
+  --color-ring: #38bdf8;
+}
+
+html[data-accent="amber"] {
+  --color-primary: #d97706;
+  --color-primary-foreground: #ffffff;
+  --color-ring: #d97706;
+}
+html.dark[data-accent="amber"] {
+  --color-primary: #fbbf24;
+  --color-primary-foreground: #422006;
+  --color-ring: #fbbf24;
+}
+
+html[data-accent="rose"] {
+  --color-primary: #e11d48;
+  --color-primary-foreground: #ffffff;
+  --color-ring: #e11d48;
+}
+html.dark[data-accent="rose"] {
+  --color-primary: #fb7185;
+  --color-primary-foreground: #4c0519;
+  --color-ring: #fb7185;
+}
+
+html[data-accent="violet"] {
+  --color-primary: #7c3aed;
+  --color-primary-foreground: #ffffff;
+  --color-ring: #7c3aed;
+}
+html.dark[data-accent="violet"] {
+  --color-primary: #a78bfa;
+  --color-primary-foreground: #2e1065;
+  --color-ring: #a78bfa;
+}
+
+html[data-accent="orange"] {
+  --color-primary: #ea580c;
+  --color-primary-foreground: #ffffff;
+  --color-ring: #ea580c;
+}
+html.dark[data-accent="orange"] {
+  --color-primary: #fb923c;
+  --color-primary-foreground: #431407;
+  --color-ring: #fb923c;
+}
+
+/* Soft tint helpers for chrome */
+.bg-primary-soft {
+  background-color: color-mix(in srgb, var(--color-primary) 14%, transparent);
+}
+.text-primary-soft {
+  color: color-mix(in srgb, var(--color-primary) 90%, var(--color-foreground));
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -84,14 +170,102 @@
   }
 
   .page-title {
-    @apply text-xl font-semibold tracking-tight;
+    @apply text-xl font-semibold tracking-tight sm:text-2xl;
   }
 
   .page-subtitle {
     @apply mt-1 text-sm text-muted-foreground;
   }
 
+  .page-header {
+    @apply space-y-1;
+  }
+
   .skeleton {
     @apply animate-pulse rounded-md bg-muted;
+  }
+}
+/* Auth stage — immersive login / register shell */
+.auth-stage-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 55% at 15% 20%, rgba(16, 185, 129, 0.16), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 85% 75%, rgba(52, 211, 153, 0.08), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(255, 255, 255, 0.04), transparent 55%),
+    linear-gradient(165deg, #09090b 0%, #0c0f12 42%, #09090b 100%);
+}
+
+.auth-stage-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.22;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 75% 65% at 50% 40%, black 20%, transparent 75%);
+}
+
+.auth-stage-lanes {
+  position: absolute;
+  inset: -10% -5%;
+  opacity: 0.35;
+  background:
+    repeating-linear-gradient(
+      -18deg,
+      transparent 0,
+      transparent 46px,
+      rgba(255, 255, 255, 0.035) 46px,
+      rgba(255, 255, 255, 0.035) 48px
+    );
+  transform: translate3d(0, 0, 0);
+}
+
+.auth-stage-sweep {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.04) 48%,
+    transparent 62%
+  );
+  background-size: 220% 100%;
+  animation: auth-stage-sweep 8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.auth-stage-pulse {
+  animation: auth-stage-pulse 2.2s ease-in-out infinite;
+  box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.55);
+}
+
+@keyframes auth-stage-sweep {
+  0%,
+  100% {
+    background-position: 100% 0;
+  }
+  50% {
+    background-position: 0% 0;
+  }
+}
+
+@keyframes auth-stage-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(52, 211, 153, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-stage-sweep,
+  .auth-stage-pulse {
+    animation: none;
   }
 }
