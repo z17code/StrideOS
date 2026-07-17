@@ -177,7 +177,8 @@ export default async function ToolsPage() {
   await requireOnboardedUser();
   return (
     <div className="page-shell">
-      <div>
+      <div className="page-header">
+        <p className="page-eyebrow">TOOLS</p>
         <h1 className="page-title">工具</h1>
         <p className="page-subtitle">
           成绩、配速、恢复与装备相关小工具
@@ -186,7 +187,12 @@ export default async function ToolsPage() {
 
       {GROUPS.map((group) => (
         <section key={group.title} className="space-y-3">
-          <h2 className="text-sm font-medium text-muted-foreground">{group.title}</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-sm font-semibold tracking-tight text-foreground">
+              {group.title}
+            </h2>
+            <div className="h-px flex-1 bg-border/80" />
+          </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {group.items.map((t) => {
               const Icon = t.icon;
@@ -196,16 +202,16 @@ export default async function ToolsPage() {
                   href={t.href}
                   className="group block touch-manipulation active:scale-[0.99]"
                 >
-                  <Card className="h-full transition-colors group-hover:border-foreground/20 group-hover:bg-muted/30">
+                  <Card className="surface-interactive h-full group-hover:border-primary/25 group-hover:bg-card">
                     <CardHeader className="pb-3">
-                      <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-foreground">
+                      <div className="tool-icon mb-2 group-hover:bg-primary group-hover:text-primary-foreground">
                         <Icon className="h-4 w-4" />
                       </div>
                       <CardTitle>{t.title}</CardTitle>
                       <CardDescription>{t.description}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground">
+                      <span className="text-xs font-medium text-muted-foreground transition-colors group-hover:text-primary">
                         进入 →
                       </span>
                     </CardContent>

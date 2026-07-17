@@ -27,30 +27,41 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="min-h-dvh">
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-card px-4 md:px-6">
-        <Link href="/admin" className="shrink-0 text-sm font-semibold tracking-tight">
-          StrideOS Admin
+    <div className="app-canvas min-h-dvh">
+      <header className="app-header">
+        <Link
+          href="/admin"
+          className="flex shrink-0 items-center gap-2.5 text-sm font-semibold tracking-tight"
+        >
+          <span
+            className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-[11px] font-bold text-primary-foreground shadow-sm"
+            aria-hidden
+          >
+            S
+          </span>
+          <span>StrideOS Admin</span>
         </Link>
-        <nav className="flex items-center gap-2 overflow-x-auto text-sm text-muted-foreground md:gap-3">
+        <nav className="flex items-center gap-1 overflow-x-auto text-sm text-muted-foreground md:gap-1.5">
           {NAV.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="whitespace-nowrap hover:text-foreground"
+              className="whitespace-nowrap rounded-lg px-2.5 py-1.5 transition-colors hover:bg-muted hover:text-foreground"
             >
               {item.label}
             </Link>
           ))}
         </nav>
         <div className="ml-auto flex shrink-0 items-center gap-3">
-          <span className="hidden text-sm text-muted-foreground sm:inline">
+          <span className="hidden max-w-[10rem] truncate rounded-full border border-border bg-muted/60 px-3 py-1.5 text-xs font-medium text-foreground shadow-sm sm:inline">
             {user.username}
           </span>
           <LogoutButton />
         </div>
       </header>
-      <main className="mx-auto max-w-5xl px-4 py-6 md:px-6">{children}</main>
+      <main className="relative mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8 lg:px-8">
+        {children}
+      </main>
     </div>
   );
 }

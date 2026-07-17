@@ -51,10 +51,10 @@ export function AppNav() {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex md:w-60 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-card">
-        <div className="flex h-14 items-center gap-2.5 border-b border-border px-5">
+      <aside className="app-sidebar">
+        <div className="flex h-16 items-center gap-3 border-b border-border px-5">
           <span
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground shadow-sm"
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-xs font-bold text-primary-foreground shadow-[0_8px_20px_-10px_color-mix(in_srgb,var(--color-primary)_70%,transparent)]"
             aria-hidden
           >
             S
@@ -67,11 +67,14 @@ export function AppNav() {
               StrideOS
             </Link>
             <p className="truncate text-[11px] text-muted-foreground">
-              长跑训练
+              长跑训练系统
             </p>
           </div>
         </div>
-        <nav className="flex flex-1 flex-col gap-1 p-3">
+        <nav className="flex flex-1 flex-col gap-1 p-3 lg:p-4">
+          <p className="mb-1 px-3 text-[10px] font-medium tracking-[0.16em] text-muted-foreground/80">
+            导航
+          </p>
           {navItems.map(({ href, label, icon: Icon }) => {
             const active =
               pathname === href || pathname.startsWith(`${href}/`);
@@ -80,22 +83,38 @@ export function AppNav() {
                 key={href}
                 href={href}
                 className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors touch-manipulation",
-                  active
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  "nav-item",
+                  active ? "nav-item-active" : "nav-item-idle",
                 )}
               >
-                <Icon className="h-4 w-4 shrink-0" />
-                {label}
+                <span
+                  className={cn(
+                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors",
+                    active ? "bg-primary/15 text-primary" : "bg-muted/70 text-muted-foreground",
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                </span>
+                <span className="truncate">{label}</span>
+                {active && (
+                  <span
+                    className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
+                    aria-hidden
+                  />
+                )}
               </Link>
             );
           })}
         </nav>
         <div className="border-t border-border p-4">
-          <p className="text-[11px] leading-relaxed text-muted-foreground">
-            计划 · 打卡 · 洞察
-          </p>
+          <div className="rounded-xl border border-border/80 bg-muted/40 px-3 py-3">
+            <p className="text-[11px] font-medium text-foreground">
+              计划 · 打卡 · 洞察
+            </p>
+            <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+              把每一次训练，都算进目标。
+            </p>
+          </div>
         </div>
       </aside>
 

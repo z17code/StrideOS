@@ -44,9 +44,10 @@ export default async function PlanPage() {
     : null;
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-5">
+    <div className="page-shell-wide">
       <div className="space-y-3">
-        <div>
+        <div className="page-header">
+          <p className="page-eyebrow">PLAN</p>
           <h1 className="page-title">计划</h1>
           <p className="page-subtitle">
             周历课表 · 版本 v{planDto?.versionNumber ?? "—"}
@@ -140,3 +141,4 @@ export default async function PlanPage() {
     </div>
   );
 }
+

@@ -23,7 +23,8 @@ export default async function MePage() {
 
   return (
     <div className="page-shell">
-      <div>
+      <div className="page-header">
+        <p className="page-eyebrow">PROFILE</p>
         <h1 className="page-title">{t.me.title}</h1>
         <p className="page-subtitle">{t.me.subtitle}</p>
       </div>
@@ -34,11 +35,11 @@ export default async function MePage() {
           <CardDescription>{t.me.accountHint}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex justify-between text-sm">
+          <div className="flex items-center justify-between rounded-xl border border-border/70 bg-muted/30 px-3.5 py-2.5 text-sm">
             <span className="text-muted-foreground">{t.me.username}</span>
             <span className="font-medium">{user.username}</span>
           </div>
-          <div className="flex justify-between text-sm">
+          <div className="flex items-center justify-between rounded-xl border border-border/70 bg-muted/30 px-3.5 py-2.5 text-sm">
             <span className="text-muted-foreground">{t.me.weeklyDistance}</span>
             <span className="font-medium tabular-nums">
               {profile.weeklyDistance ?? "—"} km
@@ -94,7 +95,7 @@ export default async function MePage() {
           <a
             href={ANDROID_APK_HREF}
             download="strideos-android.apk"
-            className="inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm touch-manipulation active:opacity-80 sm:w-auto"
+            className="inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md touch-manipulation active:opacity-80 sm:w-auto"
           >
             {t.me.downloadAndroidApk}
           </a>
@@ -134,3 +135,5 @@ export default async function MePage() {
     </div>
   );
 }
+
+

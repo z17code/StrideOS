@@ -397,12 +397,13 @@ export default function ActivityPage() {
   if (loading) {
     return (
       <div className="page-shell">
-        <div>
+        <div className="page-header">
+          <p className="page-eyebrow">ACTIVITY</p>
           <h1 className="page-title">记录</h1>
           <div className="skeleton mt-2 h-4 w-28" />
         </div>
-        <div className="skeleton h-56 w-full rounded-xl" />
-        <div className="skeleton h-40 w-full rounded-xl" />
+        <div className="skeleton h-56 w-full rounded-2xl" />
+        <div className="skeleton h-40 w-full rounded-2xl" />
       </div>
     );
   }
@@ -420,3 +421,4 @@ export default function ActivityPage() {
     </div>
   );
 }
+

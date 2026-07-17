@@ -541,28 +541,32 @@ export default function TodayPage() {
   if (loading) {
     return (
       <div className="page-shell">
-        <div>
+        <div className="page-header">
+          <p className="page-eyebrow">TODAY</p>
           <h1 className="page-title">今日</h1>
           <div className="skeleton mt-2 h-4 w-40" />
         </div>
-        <div className="space-y-4">
-          <div className="skeleton h-48 w-full rounded-xl" />
-          <div className="skeleton h-28 w-full rounded-xl" />
-          <div className="skeleton h-24 w-full rounded-xl" />
+        <div className="grid gap-5 lg:grid-cols-2">
+          <div className="skeleton h-48 w-full rounded-2xl" />
+          <div className="skeleton h-48 w-full rounded-2xl" />
         </div>
+        <div className="skeleton h-24 w-full rounded-2xl" />
       </div>
     );
   }
 
   return (
     <div className="page-shell">
-      <div>
+      <div className="page-header">
+        <p className="page-eyebrow">TODAY</p>
         <h1 className="page-title">今日</h1>
         <p className="page-subtitle">{todayFormatted}</p>
       </div>
 
-      <CheckinSection initial={checkin} onSaved={handleCheckinSaved} />
-      <TodayActivities activities={activities} />
+      <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
+        <CheckinSection initial={checkin} onSaved={handleCheckinSaved} />
+        <TodayActivities activities={activities} />
+      </div>
       <AdjustmentsSection
         proposals={proposals}
         onAction={handleAdjustmentAction}
@@ -570,3 +574,4 @@ export default function TodayPage() {
     </div>
   );
 }
+

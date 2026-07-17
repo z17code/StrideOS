@@ -42,7 +42,7 @@ function Stat({
   hint?: string;
 }) {
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
+    <div className="rounded-2xl border border-border/80 bg-card p-4 shadow-[var(--shadow-card)]">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums">
         {value}
@@ -173,3 +173,4 @@ export default function AdminHomePage() {
     </div>
   );
 }
+

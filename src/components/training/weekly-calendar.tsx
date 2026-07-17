@@ -226,7 +226,7 @@ function DayCell({
               key={w.id}
               href={`/plan/workouts/${w.id}`}
               className={cn(
-                "block rounded-lg border border-border/80 bg-background/60 px-2 py-1.5 text-xs transition-colors hover:bg-muted touch-manipulation active:opacity-80",
+                "block rounded-xl border border-border/80 bg-muted/40 px-2 py-1.5 text-xs transition-colors hover:border-primary/30 hover:bg-primary-soft touch-manipulation active:opacity-80",
                 w.workoutType === "race" && "border-primary bg-primary/5",
                 w.isQuality && "border-foreground/40",
               )}
