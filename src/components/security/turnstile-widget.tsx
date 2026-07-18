@@ -48,7 +48,8 @@ type Props = {
 /**
  * Cloudflare Turnstile managed widget.
  * Renders nothing when NEXT_PUBLIC_TURNSTILE_SITE_KEY is unset.
- * Square container (no rounded clip). Soft-fails to "unavailable" on timeout/error.
+ * Uses flexible (wide checkbox bar), not compact square.
+ * Soft-fails to "unavailable" on timeout/error.
  */
 export function TurnstileWidget({
   onToken,
@@ -85,8 +86,8 @@ export function TurnstileWidget({
       widgetIdRef.current = window.turnstile.render(containerRef.current, {
         sitekey: siteKey,
         theme,
-        // compact is faster on mobile; avoid flexible overflow quirks
-        size: "compact",
+        // flexible = full-width bar (~65px tall), not the compact square badge
+        size: "flexible",
         callback: (token) => {
           onTokenRef.current(token);
           setStatusBoth("solved");
@@ -203,13 +204,9 @@ export function TurnstileWidget({
 
   return (
     <div className={className}>
-      {/* Square clip — no rounded corners on the widget frame */}
-      <div
-        ref={containerRef}
-        className="min-h-[65px] overflow-hidden rounded-none [&_iframe]:rounded-none"
-      />
+      <div ref={containerRef} className="w-full min-h-[65px]" />
       {hint && (
-        <p className="mt-1 text-xs text-muted-foreground text-zinc-500">
+        <p className="mt-1.5 text-xs text-muted-foreground text-zinc-500">
           {hint}
         </p>
       )}

@@ -289,11 +289,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <TurnstileWidget
-              onToken={setTurnstileToken}
-              theme="dark"
-              className="rounded-none"
-            />
+            <TurnstileWidget onToken={setTurnstileToken} theme="dark" className="w-full" />
 
             {error && (
               <div

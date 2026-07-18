@@ -105,7 +105,7 @@ function ResetPasswordForm() {
                     minLength={8}
                   />
                 </div>
-                <TurnstileWidget onToken={setTurnstileToken} className="rounded-none" />
+                <TurnstileWidget onToken={setTurnstileToken} className="w-full" />
                 {error && (
                   <p className="text-sm text-destructive" role="alert">
                     {error}
