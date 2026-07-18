@@ -34,6 +34,15 @@ import { verifyTurnstileToken } from "@/lib/security/turnstile";
 export const maxDuration = 30;
 export const dynamic = "force-dynamic";
 
+type LoginUser = {
+  id: string;
+  username: string;
+  passwordHash: string;
+  role: (typeof users.$inferSelect)["role"];
+  isActive: boolean;
+  totpEnabled: boolean;
+};
+
 function lockedResponse(status: RateLimitStatus) {
   const body: ApiErrorBody = {
     error: {
@@ -46,6 +55,63 @@ function lockedResponse(status: RateLimitStatus) {
     status: 429,
     headers: rateLimitHeaders(status),
   });
+}
+
+function isMissingColumnError(err: unknown): boolean {
+  const message = err instanceof Error ? err.message : String(err);
+  const code =
+    typeof err === "object" && err && "code" in err
+      ? String((err as { code?: unknown }).code)
+      : "";
+  return (
+    code === "42703" ||
+    /column .* does not exist|undefined_column|42703|字段 .* 不存在|列 .* 不存在/i.test(
+      message,
+    )
+  );
+}
+
+/**
+ * Load login fields. Prefer including totp_enabled; if the production DB has
+ * not run migration 0007 yet, fall back so password login still works.
+ */
+async function loadLoginUser(username: string): Promise<LoginUser | undefined> {
+  try {
+    const row = await db
+      .select({
+        id: users.id,
+        username: users.username,
+        passwordHash: users.passwordHash,
+        role: users.role,
+        isActive: users.isActive,
+        totpEnabled: users.totpEnabled,
+      })
+      .from(users)
+      .where(eq(users.username, username))
+      .limit(1);
+    const u = row[0];
+    if (!u) return undefined;
+    return { ...u, totpEnabled: Boolean(u.totpEnabled) };
+  } catch (err) {
+    if (!isMissingColumnError(err)) throw err;
+    console.error(
+      "[auth/login] totp_enabled missing — run npm run db:migrate on production DATABASE_URL",
+    );
+    const row = await db
+      .select({
+        id: users.id,
+        username: users.username,
+        passwordHash: users.passwordHash,
+        role: users.role,
+        isActive: users.isActive,
+      })
+      .from(users)
+      .where(eq(users.username, username))
+      .limit(1);
+    const u = row[0];
+    if (!u) return undefined;
+    return { ...u, totpEnabled: false };
+  }
 }
 
 export async function POST(request: Request) {
@@ -86,21 +152,7 @@ export async function POST(request: Request) {
     if (!ipStatus.allowed) return lockedResponse(ipStatus);
     if (!userStatus.allowed) return lockedResponse(userStatus);
 
-    // Select only auth fields so a missing optional column cannot take down login.
-    const row = await db
-      .select({
-        id: users.id,
-        username: users.username,
-        passwordHash: users.passwordHash,
-        role: users.role,
-        isActive: users.isActive,
-        totpEnabled: users.totpEnabled,
-      })
-      .from(users)
-      .where(eq(users.username, username))
-      .limit(1);
-
-    const user = row[0];
+    const user = await loadLoginUser(username);
     // Always verify (dummy hash if missing) to reduce username timing leaks.
     const valid = await verifyPassword(
       password,
@@ -124,12 +176,22 @@ export async function POST(request: Request) {
 
     // Password OK — if 2FA enabled, hold full session until code verified.
     if (user.totpEnabled) {
-      const pendingToken = await createPending2faToken(user.id);
-      return jsonOk({
-        requires2fa: true as const,
-        pendingToken,
-        // Do not clear login rate limits until 2FA succeeds.
-      });
+      try {
+        const pendingToken = await createPending2faToken(user.id);
+        return jsonOk({
+          requires2fa: true as const,
+          pendingToken,
+          // Do not clear login rate limits until 2FA succeeds.
+        });
+      } catch (pendingErr) {
+        // pending_2fa table missing = schema not migrated; fail closed for 2FA users only.
+        console.error("[auth/login] pending 2fa", pendingErr);
+        return jsonError(
+          503,
+          "DB_SCHEMA_OUTDATED",
+          "服务暂时不可用，请联系管理员",
+        );
+      }
     }
 
     await Promise.all([clearRateLimit(ipKey), clearRateLimit(userKey)]);
@@ -162,9 +224,7 @@ export async function POST(request: Request) {
       return jsonError(503, "DB_NOT_CONFIGURED", "服务暂时不可用，请联系管理员");
     }
 
-    if (
-      /column .* does not exist|undefined_column|42703/i.test(message)
-    ) {
+    if (isMissingColumnError(err)) {
       return jsonError(
         503,
         "DB_SCHEMA_OUTDATED",

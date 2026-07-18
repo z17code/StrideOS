@@ -71,8 +71,7 @@ export async function POST(request: Request) {
   const ipStatus = await checkRateLimit(ipKey, RESET_IP_POLICY);
   if (!ipStatus.allowed) return lockedResponse(ipStatus);
 
-  const body = bodyResult.data as { turnstileToken?: string };
-  const turnstile = await verifyTurnstileToken(body.turnstileToken, request);
+  const turnstile = await verifyTurnstileToken(parsed.data.turnstileToken, request);
   if (!turnstile.ok) {
     return jsonError(400, turnstile.code, turnstile.message);
   }

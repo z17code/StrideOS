@@ -46,10 +46,6 @@ export default function LoginPage() {
   const [pendingToken, setPendingToken] = useState<string | null>(null);
   const [totpCode, setTotpCode] = useState("");
 
-  const turnstileRequired = Boolean(
-    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim(),
-  );
-
   function goAfterLogin(role?: string) {
     if (role === "admin") {
       router.replace("/admin");
@@ -62,10 +58,7 @@ export default function LoginPage() {
   async function onSubmitPassword(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (turnstileRequired && !turnstileToken) {
-      setError("请完成人机验证");
-      return;
-    }
+    // Soft Turnstile: never block submit if token missing (China / slow load).
     setLoading(true);
     try {
       const res = await fetch("/api/v1/auth/login", {
@@ -97,6 +90,7 @@ export default function LoginPage() {
       if (data.requires2fa && data.pendingToken) {
         setPendingToken(data.pendingToken);
         setTotpCode("");
+        // No Turnstile on 2FA step — avoid TOTP expiry while waiting for CF.
         resetTurnstile();
         setTurnstileToken(null);
         return;
@@ -113,10 +107,6 @@ export default function LoginPage() {
     e.preventDefault();
     if (!pendingToken) return;
     setError(null);
-    if (turnstileRequired && !turnstileToken) {
-      setError("请完成人机验证");
-      return;
-    }
     setLoading(true);
     try {
       const res = await fetch("/api/v1/auth/login/2fa", {
@@ -125,14 +115,11 @@ export default function LoginPage() {
         body: JSON.stringify({
           pendingToken,
           code: totpCode,
-          turnstileToken: turnstileToken ?? undefined,
         }),
       });
       if (!res.ok) {
         const msg = await readApiError(res);
         setError(msg);
-        resetTurnstile();
-        setTurnstileToken(null);
         // Expired challenge → back to password step
         if (res.status === 401 && msg.includes("重新登录")) {
           setPendingToken(null);
@@ -171,7 +158,7 @@ export default function LoginPage() {
           </h2>
           <p className="text-sm text-zinc-400">
             {pendingToken
-              ? "输入验证器中的 6 位验证码，或备份码"
+              ? "输入验证器中的 6 位验证码，或备份码（无需再等人机验证）"
               : "使用用户名与密码进入"}
           </p>
         </div>
@@ -195,16 +182,11 @@ export default function LoginPage() {
                   onChange={(e) => setTotpCode(e.target.value)}
                   required
                   placeholder="123456 或备份码"
+                  autoFocus
                   className="h-11 border-white/10 bg-white/[0.04] pl-10 text-zinc-50 placeholder:text-zinc-600 shadow-none focus-visible:ring-emerald-400/50"
                 />
               </div>
             </div>
-
-            <TurnstileWidget
-              onToken={setTurnstileToken}
-              theme="dark"
-              className="overflow-hidden rounded-lg"
-            />
 
             {error && (
               <div
@@ -310,7 +292,7 @@ export default function LoginPage() {
             <TurnstileWidget
               onToken={setTurnstileToken}
               theme="dark"
-              className="overflow-hidden rounded-lg"
+              className="rounded-none"
             />
 
             {error && (

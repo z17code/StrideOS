@@ -28,11 +28,7 @@ function ResetPasswordForm() {
   const [loading, setLoading] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
-  const turnstileRequired = Boolean(
-    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim(),
-  );
-
-  useEffect(() => {
+   useEffect(() => {
     const q = searchParams.get("token");
     if (q) setToken(q);
   }, [searchParams]);
@@ -40,10 +36,6 @@ function ResetPasswordForm() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (turnstileRequired && !turnstileToken) {
-      setError("请完成人机验证");
-      return;
-    }
     setLoading(true);
     try {
       const res = await fetch("/api/v1/auth/reset-password", {
@@ -113,7 +105,7 @@ function ResetPasswordForm() {
                     minLength={8}
                   />
                 </div>
-                <TurnstileWidget onToken={setTurnstileToken} />
+                <TurnstileWidget onToken={setTurnstileToken} className="rounded-none" />
                 {error && (
                   <p className="text-sm text-destructive" role="alert">
                     {error}

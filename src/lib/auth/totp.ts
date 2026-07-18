@@ -14,7 +14,7 @@ import {
 const BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 const TOTP_DIGITS = 6;
 const TOTP_PERIOD_SEC = 30;
-const TOTP_WINDOW = 1; // ±1 step
+const TOTP_WINDOW = 2; // ±2 steps (~±60s) — helps when login UI is slow
 const ISSUER = "StrideOS";
 
 function getEncryptionKey(): Buffer {
@@ -177,3 +177,4 @@ export function hashBackupCode(code: string): string {
     .update(normalizeBackupCode(code))
     .digest("hex");
 }
+

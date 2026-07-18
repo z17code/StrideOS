@@ -1,6 +1,6 @@
 import { requireUser, jsonError, jsonOk } from "@/lib/auth/guards";
 import { assertSameOrigin, readJsonBody } from "@/lib/security/request";
-import { totpCodeSchema } from "@/lib/validators/auth";
+import { totpConfirmSchema } from "@/lib/validators/auth";
 import {
   confirmTotpSetup,
   isTotpError,
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     return jsonError(bodyResult.status, bodyResult.code, bodyResult.message);
   }
 
-  const parsed = totpCodeSchema.safeParse(bodyResult.data);
+  const parsed = totpConfirmSchema.safeParse(bodyResult.data);
   if (!parsed.success) {
     return jsonError(
       400,
@@ -35,10 +35,20 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await confirmTotpSetup(auth.user.id, parsed.data.code);
+    const result = await confirmTotpSetup(
+      auth.user.id,
+      parsed.data.code,
+      parsed.data.name,
+    );
     return jsonOk({
       enabled: true,
       backupCodes: result.backupCodes,
+      authenticator: {
+        id: result.authenticator.id,
+        name: result.authenticator.name,
+        createdAt: result.authenticator.createdAt.toISOString(),
+        lastUsedAt: result.authenticator.lastUsedAt?.toISOString() ?? null,
+      },
     });
   } catch (err) {
     if (isTotpError(err)) {

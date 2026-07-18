@@ -534,8 +534,7 @@ npm test
 
 ## Auth: Turnstile + TOTP (2026-07-18)
 
-- **Turnstile**: login/register/reset-password; env NEXT_PUBLIC_TURNSTILE_SITE_KEY + TURNSTILE_SECRET_KEY; skip server verify if secret unset.
-- **TOTP**: migration  007_totp_2fa; APIs under /api/v1/me/totp/* and /api/v1/auth/login/2fa; UI on Me + Admin Security.
-- Deploy: run 
-pm run db:migrate against Neon, set Vercel env vars, redeploy.
-
+- **Turnstile** (soft by default): login/register/reset-password widget + `verifyTurnstileToken`. Missing token allowed (rate limits backstop); invalid token rejected; set `TURNSTILE_STRICT=1` for hard require. **No Turnstile on `/login/2fa`**. Widget compact/square, ~8s load timeout.
+- **TOTP multi-device**: migration `0007_totp_2fa` + `0008_totp_authenticators` (`totp_authenticators`, `users.totp_pending_name`). Up to 5 named authenticators; rename/remove; first enable issues backup codes once. TOTP window ±2 steps.
+- APIs: `GET/POST /api/v1/me/totp*`, `PATCH|DELETE /api/v1/me/totp/authenticators/:id`, `POST /api/v1/auth/login/2fa`.
+- Deploy: `npm run db:migrate` on Neon, set Vercel Turnstile env, redeploy so `NEXT_PUBLIC_*` is baked in.

@@ -12,6 +12,13 @@ export async function GET() {
     return jsonOk({
       enabled: status.enabled,
       enabledAt: status.enabledAt?.toISOString() ?? null,
+      authenticators: status.authenticators.map((a) => ({
+        id: a.id,
+        name: a.name,
+        createdAt: a.createdAt.toISOString(),
+        lastUsedAt: a.lastUsedAt?.toISOString() ?? null,
+      })),
+      maxAuthenticators: 5,
     });
   } catch (err) {
     console.error("[me/totp GET]", err);

@@ -47,13 +47,14 @@ export const registerSchema = z.object({
 export const loginSchema = z.object({
   username: z.string().min(1, "请输入用户名").max(64, "用户名过长"),
   password: z.string().min(1, "请输入密码").max(128, "密码过长"),
-  /** Cloudflare Turnstile response token (required when server has secret configured). */
+  /** Cloudflare Turnstile response token (optional; soft-verified server-side). */
   turnstileToken: z.string().max(2048).optional(),
 });
 
 export const login2faSchema = z.object({
   pendingToken: z.string().min(1, "缺少二次验证令牌").max(256),
   code: z.string().min(4, "请输入验证码").max(32, "验证码过长"),
+  // Kept optional for backward-compatible clients; server ignores Turnstile on 2FA.
   turnstileToken: z.string().max(2048).optional(),
 });
 
@@ -61,9 +62,33 @@ export const totpCodeSchema = z.object({
   code: z.string().min(4, "请输入验证码").max(32, "验证码过长"),
 });
 
+export const totpAuthenticatorNameSchema = z
+  .string()
+  .trim()
+  .min(1, "请输入名称")
+  .max(24, "名称最多 24 个字符");
+
+export const totpSetupSchema = z.object({
+  name: totpAuthenticatorNameSchema.optional(),
+});
+
+export const totpConfirmSchema = z.object({
+  code: z.string().min(4, "请输入验证码").max(32, "验证码过长"),
+  name: totpAuthenticatorNameSchema.optional(),
+});
+
+export const totpRenameSchema = z.object({
+  name: totpAuthenticatorNameSchema,
+});
+
+export const totpRemoveAuthenticatorSchema = z.object({
+  code: z.string().min(4, "请输入验证码").max(32, "验证码过长"),
+});
+
 export const resetPasswordWithTokenSchema = z.object({
   token: z.string().min(1, "请输入重置令牌").max(256, "令牌过长"),
   newPassword: passwordSchema,
+  turnstileToken: z.string().max(2048).optional(),
 });
 
 export const createInviteCodeSchema = z.object({
@@ -94,4 +119,3 @@ export const adminDeleteUserSchema = z.object({
     errorMap: () => ({ message: "请完整输入确认文案" }),
   }),
 });
-

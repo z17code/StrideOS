@@ -68,6 +68,8 @@ export const users = pgTable(
     totpSecretEnc: text("totp_secret_enc"),
     /** Pending secret during setup before first successful verify. */
     totpPendingSecretEnc: text("totp_pending_secret_enc"),
+    /** Display name for the pending authenticator being bound. */
+    totpPendingName: text("totp_pending_name"),
     totpEnabledAt: timestamp("totp_enabled_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -118,6 +120,24 @@ export const inviteCodes = pgTable(
       .defaultNow(),
   },
   (t) => [uniqueIndex("invite_codes_code_uidx").on(t.code)],
+);
+
+/** Named TOTP authenticators (multiple devices per user). */
+export const totpAuthenticators = pgTable(
+  "totp_authenticators",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    secretEnc: text("secret_enc").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+  },
+  (t) => [index("totp_authenticators_user_id_idx").on(t.userId)],
 );
 
 /** One-time backup codes for TOTP recovery (hashed). */
@@ -526,6 +546,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     references: [runnerProfiles.userId],
   }),
   sessions: many(sessions),
+  totpAuthenticators: many(totpAuthenticators),
   totpBackupCodes: many(totpBackupCodes),
   goals: many(raceGoals),
   planVersions: many(planVersions),
@@ -571,5 +592,6 @@ export type NewRaceStrategy = typeof raceStrategies.$inferInsert;
 export type AuthRateLimit = typeof authRateLimits.$inferSelect;
 export type AdminAuditLog = typeof adminAuditLogs.$inferSelect;
 export type NewAdminAuditLog = typeof adminAuditLogs.$inferInsert;
+export type TotpAuthenticator = typeof totpAuthenticators.$inferSelect;
 export type TotpBackupCode = typeof totpBackupCodes.$inferSelect;
 export type Pending2fa = typeof pending2fa.$inferSelect;

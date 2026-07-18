@@ -209,17 +209,20 @@ npm run cap:open      # Android Studio 打开工程
 24. **Cloudflare Turnstile（人机验证）**：
     - 登录 / 注册 / 重置密码：前端 widget + 服务端 `verifyTurnstileToken`（`src/lib/security/turnstile.ts`）。
     - Env：`NEXT_PUBLIC_TURNSTILE_SITE_KEY`、`TURNSTILE_SECRET_KEY`；**未配置 Secret 时服务端跳过校验**（本地开发友好）。
-    - Widget 模式：Managed。CSP 已允许 `challenges.cloudflare.com`（script/frame/connect）。
-    - 密钥只放 Vercel / `.env.local`，勿提交仓库。
+    - **默认软模式**（国内网络友好）：无 token 仍放行（靠限流兜底）；提交了无效 token 仍拒绝；siteverify 网络失败也放行。硬校验：`TURNSTILE_STRICT=1`。
+    - **二次验证步骤不再做人机验证**（密码步已挑战；避免等人机时 TOTP 过期）。
+    - Widget：Managed、compact、**无圆角**、约 8s 加载超时后提示可直接继续。
+    - CSP 已允许 `challenges.cloudflare.com`（script/frame/connect）。密钥只放 Vercel / `.env.local`。
 
 25. **TOTP 二次验证（验证器 App）**：
-    - 可选开启；用户「我的」/ 管理员「安全」页绑定；扫码或手动密钥。
-    - 登录：密码通过且已开启 2FA → 返回 `requires2fa` + `pendingToken`（不发 session）→ `POST /api/v1/auth/login/2fa` 校验 6 位码或备份码后再建 session。
-    - Schema 迁移 `0007_totp_2fa`：`users.totp_*`、`totp_backup_codes`、`pending_2fa`。
-    - Secret AES-GCM 加密（密钥来自 `TOTP_ENCRYPTION_KEY` 或 `SESSION_SECRET`）；备份码只显示一次、哈希入库。
-    - 关闭 2FA 需当前验证码或未使用备份码。
+    - 可选开启；用户「我的」绑定；支持**多个命名验证器**（最多 5，可改名/单独移除）。
+    - 登录：密码通过且已开启 2FA → 返回 `requires2fa` + `pendingToken`（不发 session）→ `POST /api/v1/auth/login/2fa` 校验任一验证器 6 位码或备份码后再建 session。
+    - Schema：`0007_totp_2fa`（`users.totp_*`、`totp_backup_codes`、`pending_2fa`）+ `0008_totp_authenticators`（`totp_authenticators`、`users.totp_pending_name`）。
+    - 首次开启才发备份码（仅显示一次、哈希入库）；再加设备不再重发。移除最后一个验证器 = 关闭 2FA。
+    - Secret AES-GCM（`TOTP_ENCRYPTION_KEY` 或 `SESSION_SECRET`）；校验窗口 ±2 步（约 ±60s）。
+    - API：`GET /api/v1/me/totp`、`POST setup/confirm/disable`、`PATCH|DELETE /api/v1/me/totp/authenticators/:id`。
 
-*最后文档维护提醒写入：2026-07-17（文档对齐 main：§4 重编号 + 用户面文案策略；HANDOFF/README/.env.example 同步）*
+*最后文档维护提醒写入：2026-07-18（多验证器 + Turnstile 软模式 / 2FA 不验人机）*
 
 
 

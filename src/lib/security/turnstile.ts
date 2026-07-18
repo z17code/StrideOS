@@ -1,6 +1,13 @@
 /**
  * Cloudflare Turnstile server verification.
- * When TURNSTILE_SECRET_KEY is unset, verification is skipped (local dev).
+ *
+ * Default is soft mode (China-friendly):
+ * - No secret configured → skip (local dev)
+ * - Missing token → allow (script blocked / slow network); rate limits still apply
+ * - Provided token fails verification → reject
+ * - Siteverify network/HTTP failure → allow (soft)
+ *
+ * Set TURNSTILE_STRICT=1 to require a valid token whenever secret is configured.
  */
 import { getClientIp } from "@/lib/security/request";
 
@@ -11,18 +18,22 @@ export function isTurnstileConfigured(): boolean {
   return Boolean(process.env.TURNSTILE_SECRET_KEY?.trim());
 }
 
+export function isTurnstileStrict(): boolean {
+  const v = process.env.TURNSTILE_STRICT?.trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes";
+}
+
 export function getTurnstileSiteKey(): string | null {
   const key = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim();
   return key || null;
 }
 
 export type TurnstileVerifyResult =
-  | { ok: true }
+  | { ok: true; soft?: boolean }
   | { ok: false; code: string; message: string };
 
 /**
  * Verify a Turnstile response token.
- * Skips when secret is not configured (dev / optional rollout).
  */
 export async function verifyTurnstileToken(
   token: string | undefined | null,
@@ -33,15 +44,24 @@ export async function verifyTurnstileToken(
     return { ok: true };
   }
 
-  if (!token || typeof token !== "string" || token.length < 10) {
-    return {
-      ok: false,
-      code: "TURNSTILE_REQUIRED",
-      message: "请完成人机验证",
-    };
+  const strict = isTurnstileStrict();
+  const hasToken =
+    typeof token === "string" && token.trim().length >= 10;
+
+  if (!hasToken) {
+    if (strict) {
+      return {
+        ok: false,
+        code: "TURNSTILE_REQUIRED",
+        message: "请完成人机验证",
+      };
+    }
+    // Soft allow: widget may be blocked (e.g. regional network) or still loading.
+    return { ok: true, soft: true };
   }
 
-  if (token.length > 2048) {
+  const cleaned = token!.trim();
+  if (cleaned.length > 2048) {
     return {
       ok: false,
       code: "TURNSTILE_INVALID",
@@ -51,7 +71,7 @@ export async function verifyTurnstileToken(
 
   const body = new URLSearchParams();
   body.set("secret", secret);
-  body.set("response", token);
+  body.set("response", cleaned);
   const ip = getClientIp(request);
   if (ip && ip !== "unknown") {
     body.set("remoteip", ip);
@@ -62,17 +82,19 @@ export async function verifyTurnstileToken(
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body,
-      // Edge/serverless: short timeout via AbortSignal if available
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(6000),
     });
 
     if (!res.ok) {
       console.error("[turnstile] siteverify HTTP", res.status);
-      return {
-        ok: false,
-        code: "TURNSTILE_UNAVAILABLE",
-        message: "人机验证服务暂时不可用，请稍后重试",
-      };
+      if (strict) {
+        return {
+          ok: false,
+          code: "TURNSTILE_UNAVAILABLE",
+          message: "人机验证服务暂时不可用，请稍后重试",
+        };
+      }
+      return { ok: true, soft: true };
     }
 
     const data = (await res.json()) as {
@@ -92,10 +114,13 @@ export async function verifyTurnstileToken(
     };
   } catch (err) {
     console.error("[turnstile] verify error", err);
-    return {
-      ok: false,
-      code: "TURNSTILE_UNAVAILABLE",
-      message: "人机验证服务暂时不可用，请稍后重试",
-    };
+    if (strict) {
+      return {
+        ok: false,
+        code: "TURNSTILE_UNAVAILABLE",
+        message: "人机验证服务暂时不可用，请稍后重试",
+      };
+    }
+    return { ok: true, soft: true };
   }
 }

@@ -31,7 +31,6 @@ import {
   rateLimitHeaders,
   type RateLimitStatus,
 } from "@/lib/security/rate-limit";
-import { verifyTurnstileToken } from "@/lib/security/turnstile";
 
 export const maxDuration = 30;
 export const dynamic = "force-dynamic";
@@ -50,6 +49,11 @@ function lockedResponse(status: RateLimitStatus) {
   });
 }
 
+/**
+ * Complete 2FA after password step.
+ * No Turnstile here: password step already challenged; waiting for CF
+ * would burn the user's 30s TOTP window.
+ */
 export async function POST(request: Request) {
   const originCheck = assertSameOrigin(request);
   if (!originCheck.ok) {
@@ -64,14 +68,6 @@ export async function POST(request: Request) {
   const parsed = login2faSchema.safeParse(bodyResult.data);
   if (!parsed.success) {
     return jsonError(400, "VALIDATION_ERROR", "参数校验失败", parsed.error.flatten());
-  }
-
-  const turnstile = await verifyTurnstileToken(
-    parsed.data.turnstileToken,
-    request,
-  );
-  if (!turnstile.ok) {
-    return jsonError(400, turnstile.code, turnstile.message);
   }
 
   const ip = getClientIp(request);
