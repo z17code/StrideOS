@@ -10,6 +10,7 @@ const NAV = [
   { href: "/admin/users", label: "用户" },
   { href: "/admin/invites", label: "邀请码" },
   { href: "/admin/security", label: "安全" },
+  { href: "/admin/announcements", label: "公告" },
   { href: "/admin/audit", label: "审计" },
 ] as const;
 

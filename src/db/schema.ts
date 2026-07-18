@@ -249,6 +249,38 @@ export const adminAuditLogs = pgTable(
 );
 
 
+
+// ─── Site announcements ──────────────────────────────────
+
+/** Global site notices managed by admins; users only see published + in-window. */
+export const announcements = pgTable(
+  "announcements",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    /** When false, hidden from all non-admin surfaces. */
+    isPublished: boolean("is_published").notNull().default(false),
+    /** Higher shows first among published. */
+    priority: integer("priority").notNull().default(0),
+    /** Optional schedule window (null = always when published). */
+    startsAt: timestamp("starts_at", { withTimezone: true }),
+    endsAt: timestamp("ends_at", { withTimezone: true }),
+    createdByAdminId: uuid("created_by_admin_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("announcements_published_idx").on(t.isPublished),
+    index("announcements_priority_idx").on(t.priority),
+  ],
+);
 // ─── Runner profile & goals ──────────────────────────────
 
 export const runnerProfiles = pgTable(
@@ -595,3 +627,5 @@ export type NewAdminAuditLog = typeof adminAuditLogs.$inferInsert;
 export type TotpAuthenticator = typeof totpAuthenticators.$inferSelect;
 export type TotpBackupCode = typeof totpBackupCodes.$inferSelect;
 export type Pending2fa = typeof pending2fa.$inferSelect;
+export type Announcement = typeof announcements.$inferSelect;
+export type NewAnnouncement = typeof announcements.$inferInsert;

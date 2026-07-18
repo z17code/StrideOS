@@ -82,6 +82,8 @@ export default async function MePage() {
               dark: t.me.themeDark,
               accent: t.me.accent,
               accentHint: t.me.accentHint,
+              style: t.me.uiStyle,
+              styleHint: t.me.uiStyleHint,
             }}
           />
         </CardContent>

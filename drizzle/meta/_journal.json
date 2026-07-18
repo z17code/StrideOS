@@ -64,6 +64,13 @@
       "when": 1750000008000,
       "tag": "0008_totp_authenticators",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1750000009000,
+      "tag": "0009_announcements",
+      "breakpoints": true
     }
   ]
 }

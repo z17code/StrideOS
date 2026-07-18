@@ -221,9 +221,14 @@ npm run cap:open      # Android Studio 打开工程
     - 首次开启才发备份码（仅显示一次、哈希入库）；再加设备不再重发。移除最后一个验证器 = 关闭 2FA。
     - Secret AES-GCM（`TOTP_ENCRYPTION_KEY` 或 `SESSION_SECRET`）；校验窗口 ±2 步（约 ±60s）。
     - API：`GET /api/v1/me/totp`、`POST setup/confirm/disable`、`PATCH|DELETE /api/v1/me/totp/authenticators/:id`。
+26. **界面样式可切换（苹果风默认）**：
+    - localStorage `strideos_style`：`apple`（默认）| `classic`；经 `html[data-style]` 驱动 CSS 皮肤。
+    - 「我的」偏好里可切换；boot script 同步 `data-style` 防闪烁。
+    - 后续新增样式：扩展 `StyleId` / `STYLE_OPTIONS` + `globals.css` 的 `html[data-style="…"]` 即可。
 
-*最后文档维护提醒写入：2026-07-18（多验证器 + Turnstile 软模式 / 2FA 不验人机）*
+27. **桌面侧栏可收起**：localStorage `strideos_sidebar_collapsed`（`1`/`0`）→ `html[data-sidebar=collapsed|expanded]`；收起为图标轨，再次点击展开。
+
+28. **全站公告**：表 `announcements`（迁移 `0009_announcements`）；管理端 `/admin/announcements` CRUD + 发布/下线；用户 `GET /api/v1/announcements` + 主站 `AnnouncementBanner`（关闭状态存 localStorage `strideos_announcement_dismissed`）。
 
 
-
-
+*最后文档维护提醒写入：2026-07-18（苹果风样式系统 + 可收起侧栏 + 公告）*
