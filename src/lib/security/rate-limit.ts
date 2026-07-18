@@ -40,6 +40,13 @@ export const RESET_IP_POLICY: RateLimitPolicy = {
   lockMs: 30 * 60 * 1000,
 };
 
+/** Failed TOTP / backup code attempts (per pending token or user). */
+export const TOTP_VERIFY_POLICY: RateLimitPolicy = {
+  maxHits: 8,
+  windowMs: 15 * 60 * 1000,
+  lockMs: 15 * 60 * 1000,
+};
+
 export type RateLimitStatus = {
   allowed: boolean;
   remaining: number;

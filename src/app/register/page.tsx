@@ -13,6 +13,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  TurnstileWidget,
+  resetTurnstile,
+} from "@/components/security/turnstile-widget";
 import { registerSchema } from "@/lib/validators/auth";
 import {
   firstFlattenMessage,
@@ -27,6 +31,11 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+
+  const turnstileRequired = Boolean(
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim(),
+  );
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -43,17 +52,29 @@ export default function RegisterPage() {
       return;
     }
 
+    if (turnstileRequired && !turnstileToken) {
+      setError("请完成人机验证");
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await fetch("/api/v1/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ inviteCode, username, password }),
+        body: JSON.stringify({
+          inviteCode,
+          username,
+          password,
+          turnstileToken: turnstileToken ?? undefined,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
         const fromDetails = firstFlattenMessage(data?.error?.details);
         setError(fromDetails ?? data?.error?.message ?? "注册失败");
+        resetTurnstile();
+        setTurnstileToken(null);
         return;
       }
       router.replace("/");
@@ -131,6 +152,7 @@ export default function RegisterPage() {
                   minLength={8}
                 />
               </div>
+              <TurnstileWidget onToken={setTurnstileToken} />
               {error && (
                 <p className="text-sm text-destructive" role="alert">
                   {error}

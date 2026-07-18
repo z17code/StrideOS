@@ -7,6 +7,7 @@ import {
   createSession,
   setSessionCookie,
 } from "@/lib/auth/session";
+import { createPending2faToken } from "@/lib/auth/totp-service";
 import { jsonError, jsonOk, type ApiErrorBody } from "@/lib/auth/guards";
 import { loginSchema } from "@/lib/validators/auth";
 import {
@@ -27,6 +28,7 @@ import {
   rateLimitHeaders,
   type RateLimitStatus,
 } from "@/lib/security/rate-limit";
+import { verifyTurnstileToken } from "@/lib/security/turnstile";
 
 /** Give Neon cold-start a bit more room on Vercel serverless. */
 export const maxDuration = 30;
@@ -62,6 +64,14 @@ export async function POST(request: Request) {
     return jsonError(400, "VALIDATION_ERROR", "参数校验失败", parsed.error.flatten());
   }
 
+  const turnstile = await verifyTurnstileToken(
+    parsed.data.turnstileToken,
+    request,
+  );
+  if (!turnstile.ok) {
+    return jsonError(400, turnstile.code, turnstile.message);
+  }
+
   const { username, password } = parsed.data;
   const ip = getClientIp(request);
   const ipKey = ipBucketKey("login", ip);
@@ -76,8 +86,7 @@ export async function POST(request: Request) {
     if (!ipStatus.allowed) return lockedResponse(ipStatus);
     if (!userStatus.allowed) return lockedResponse(userStatus);
 
-    // Select only auth fields so a missing optional column (e.g. admin_note
-    // before migration 0004) cannot take down login.
+    // Select only auth fields so a missing optional column cannot take down login.
     const row = await db
       .select({
         id: users.id,
@@ -85,6 +94,7 @@ export async function POST(request: Request) {
         passwordHash: users.passwordHash,
         role: users.role,
         isActive: users.isActive,
+        totpEnabled: users.totpEnabled,
       })
       .from(users)
       .where(eq(users.username, username))
@@ -112,12 +122,21 @@ export async function POST(request: Request) {
       return jsonError(403, "ACCOUNT_DISABLED", "账号已被停用，请联系管理员");
     }
 
+    // Password OK — if 2FA enabled, hold full session until code verified.
+    if (user.totpEnabled) {
+      const pendingToken = await createPending2faToken(user.id);
+      return jsonOk({
+        requires2fa: true as const,
+        pendingToken,
+        // Do not clear login rate limits until 2FA succeeds.
+      });
+    }
+
     await Promise.all([clearRateLimit(ipKey), clearRateLimit(userKey)]);
 
     const token = await createSession(user.id);
     await setSessionCookie(token);
 
-    // Best-effort last login stamp (ignore if column not yet migrated).
     try {
       await db
         .update(users)
@@ -128,6 +147,7 @@ export async function POST(request: Request) {
     }
 
     return jsonOk({
+      requires2fa: false as const,
       user: {
         id: user.id,
         username: user.username,
@@ -167,4 +187,3 @@ export async function POST(request: Request) {
     return jsonError(500, "LOGIN_FAILED", "登录服务异常，请稍后重试");
   }
 }
-

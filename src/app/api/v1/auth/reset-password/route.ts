@@ -7,6 +7,7 @@ import { destroyAllUserSessions } from "@/lib/auth/session";
 import { hashToken } from "@/lib/auth/tokens";
 import { jsonError, jsonOk, type ApiErrorBody } from "@/lib/auth/guards";
 import { resetPasswordWithTokenSchema } from "@/lib/validators/auth";
+import { verifyTurnstileToken } from "@/lib/security/turnstile";
 import { firstZodMessage } from "@/lib/validators/format";
 import {
   assertSameOrigin,
@@ -69,6 +70,12 @@ export async function POST(request: Request) {
   const ipKey = ipBucketKey("reset", ip);
   const ipStatus = await checkRateLimit(ipKey, RESET_IP_POLICY);
   if (!ipStatus.allowed) return lockedResponse(ipStatus);
+
+  const body = bodyResult.data as { turnstileToken?: string };
+  const turnstile = await verifyTurnstileToken(body.turnstileToken, request);
+  if (!turnstile.ok) {
+    return jsonError(400, turnstile.code, turnstile.message);
+  }
 
   const { token, newPassword } = parsed.data;
   const tokenHash = hashToken(token);

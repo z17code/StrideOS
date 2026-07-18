@@ -10,6 +10,7 @@ import {
 import { jsonCreated, jsonError, type ApiErrorBody } from "@/lib/auth/guards";
 import { isInviteConsumed } from "@/lib/auth/invite-status";
 import { registerSchema } from "@/lib/validators/auth";
+import { verifyTurnstileToken } from "@/lib/security/turnstile";
 import { firstZodMessage } from "@/lib/validators/format";
 import {
   assertSameOrigin,
@@ -69,6 +70,14 @@ export async function POST(request: Request) {
   const ipKey = ipBucketKey("register", ip);
   const ipStatus = await checkRateLimit(ipKey, REGISTER_IP_POLICY);
   if (!ipStatus.allowed) return lockedResponse(ipStatus);
+
+  const turnstile = await verifyTurnstileToken(
+    parsed.data.turnstileToken,
+    request,
+  );
+  if (!turnstile.ok) {
+    return jsonError(400, turnstile.code, turnstile.message);
+  }
 
   const { inviteCode, username, password } = parsed.data;
   const code = inviteCode.trim().toUpperCase();

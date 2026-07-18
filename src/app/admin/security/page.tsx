@@ -1,5 +1,7 @@
 "use client";
 
+import { TotpSection } from "@/components/me/totp-section";
+
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -112,6 +114,8 @@ export default function AdminSecurityPage() {
           查看登录/注册限流桶，解除误伤锁定（IP 桶为哈希，用户名可直接解锁）
         </p>
       </div>
+
+      <TotpSection />
 
       {error && (
         <p className="text-sm text-destructive" role="alert">

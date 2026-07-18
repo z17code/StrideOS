@@ -4,7 +4,7 @@
 > 完整产品与运维细节见 [HANDOFF.md](./HANDOFF.md)；对外说明见 [README.md](./README.md)。  
 > **先读本文再大范围扫仓库**，避免重复摸底。
 
-**状态基准**：2026-07-17 · GitHub `main` · 仓库 https://github.com/z17code/StrideOS
+**状态基准**：2026-07-18 · GitHub `main` · 仓库 https://github.com/z17code/StrideOS
 
 ---
 
@@ -204,6 +204,20 @@ npm run cap:open      # Android Studio 打开工程
 1. `AGENTS.md` §4 是否仍反映当前「不要回退」的行为  
 2. `HANDOFF.md` 日期与相关 Phase / API / 迁移表是否对齐  
 3. 若有新迁移：`drizzle/` + journal + HANDOFF 迁移说明  
+
+
+24. **Cloudflare Turnstile（人机验证）**：
+    - 登录 / 注册 / 重置密码：前端 widget + 服务端 `verifyTurnstileToken`（`src/lib/security/turnstile.ts`）。
+    - Env：`NEXT_PUBLIC_TURNSTILE_SITE_KEY`、`TURNSTILE_SECRET_KEY`；**未配置 Secret 时服务端跳过校验**（本地开发友好）。
+    - Widget 模式：Managed。CSP 已允许 `challenges.cloudflare.com`（script/frame/connect）。
+    - 密钥只放 Vercel / `.env.local`，勿提交仓库。
+
+25. **TOTP 二次验证（验证器 App）**：
+    - 可选开启；用户「我的」/ 管理员「安全」页绑定；扫码或手动密钥。
+    - 登录：密码通过且已开启 2FA → 返回 `requires2fa` + `pendingToken`（不发 session）→ `POST /api/v1/auth/login/2fa` 校验 6 位码或备份码后再建 session。
+    - Schema 迁移 `0007_totp_2fa`：`users.totp_*`、`totp_backup_codes`、`pending_2fa`。
+    - Secret AES-GCM 加密（密钥来自 `TOTP_ENCRYPTION_KEY` 或 `SESSION_SECRET`）；备份码只显示一次、哈希入库。
+    - 关闭 2FA 需当前验证码或未使用备份码。
 
 *最后文档维护提醒写入：2026-07-17（文档对齐 main：§4 重编号 + 用户面文案策略；HANDOFF/README/.env.example 同步）*
 

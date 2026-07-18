@@ -529,3 +529,13 @@ npm test
 *Last update: 2026-07-17 — Docs sync: tools P0–P2 + admin ops + user-facing copy policy; schema/tests/API/env aligned*
 
 
+
+---
+
+## Auth: Turnstile + TOTP (2026-07-18)
+
+- **Turnstile**: login/register/reset-password; env NEXT_PUBLIC_TURNSTILE_SITE_KEY + TURNSTILE_SECRET_KEY; skip server verify if secret unset.
+- **TOTP**: migration  007_totp_2fa; APIs under /api/v1/me/totp/* and /api/v1/auth/login/2fa; UI on Me + Admin Security.
+- Deploy: run 
+pm run db:migrate against Neon, set Vercel env vars, redeploy.
+

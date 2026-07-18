@@ -41,11 +41,24 @@ export const registerSchema = z.object({
   inviteCode: z.string().min(1, "请输入邀请码").max(64, "邀请码过长"),
   username: usernameSchema,
   password: passwordSchema,
+  turnstileToken: z.string().max(2048).optional(),
 });
 
 export const loginSchema = z.object({
   username: z.string().min(1, "请输入用户名").max(64, "用户名过长"),
   password: z.string().min(1, "请输入密码").max(128, "密码过长"),
+  /** Cloudflare Turnstile response token (required when server has secret configured). */
+  turnstileToken: z.string().max(2048).optional(),
+});
+
+export const login2faSchema = z.object({
+  pendingToken: z.string().min(1, "缺少二次验证令牌").max(256),
+  code: z.string().min(4, "请输入验证码").max(32, "验证码过长"),
+  turnstileToken: z.string().max(2048).optional(),
+});
+
+export const totpCodeSchema = z.object({
+  code: z.string().min(4, "请输入验证码").max(32, "验证码过长"),
 });
 
 export const resetPasswordWithTokenSchema = z.object({

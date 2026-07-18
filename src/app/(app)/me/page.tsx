@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireOnboardedUser } from "@/lib/auth/onboarding-gate";
 import { LogoutButton } from "@/components/layout/logout-button";
 import { DeleteAccountSection } from "@/components/layout/delete-account-section";
+import { TotpSection } from "@/components/me/totp-section";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { getRequestDictionary } from "@/lib/i18n/server";
@@ -117,6 +118,8 @@ export default async function MePage() {
           </div>
         </CardContent>
       </Card>
+
+      <TotpSection />
 
       <DeleteAccountSection
         labels={{

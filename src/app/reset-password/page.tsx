@@ -13,6 +13,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  TurnstileWidget,
+  resetTurnstile,
+} from "@/components/security/turnstile-widget";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -22,6 +26,11 @@ function ResetPasswordForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+
+  const turnstileRequired = Boolean(
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim(),
+  );
 
   useEffect(() => {
     const q = searchParams.get("token");
@@ -31,16 +40,26 @@ function ResetPasswordForm() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (turnstileRequired && !turnstileToken) {
+      setError("请完成人机验证");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/v1/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, newPassword }),
+        body: JSON.stringify({
+          token,
+          newPassword,
+          turnstileToken: turnstileToken ?? undefined,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
         setError(data?.error?.message ?? "重置失败");
+        resetTurnstile();
+        setTurnstileToken(null);
         return;
       }
       setSuccess(true);
@@ -94,6 +113,7 @@ function ResetPasswordForm() {
                     minLength={8}
                   />
                 </div>
+                <TurnstileWidget onToken={setTurnstileToken} />
                 {error && (
                   <p className="text-sm text-destructive" role="alert">
                     {error}
@@ -130,4 +150,3 @@ export default function ResetPasswordPage() {
     </Suspense>
   );
 }
-

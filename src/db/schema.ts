@@ -62,6 +62,13 @@ export const users = pgTable(
     role: userRoleEnum("role").notNull().default("user"),
     isActive: boolean("is_active").notNull().default(true),
     lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
+    /** TOTP 2FA enabled after user confirms setup with a valid code. */
+    totpEnabled: boolean("totp_enabled").notNull().default(false),
+    /** AES-GCM encrypted base32 secret (active when enabled). */
+    totpSecretEnc: text("totp_secret_enc"),
+    /** Pending secret during setup before first successful verify. */
+    totpPendingSecretEnc: text("totp_pending_secret_enc"),
+    totpEnabledAt: timestamp("totp_enabled_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -111,6 +118,46 @@ export const inviteCodes = pgTable(
       .defaultNow(),
   },
   (t) => [uniqueIndex("invite_codes_code_uidx").on(t.code)],
+);
+
+/** One-time backup codes for TOTP recovery (hashed). */
+export const totpBackupCodes = pgTable(
+  "totp_backup_codes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    codeHash: text("code_hash").notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("totp_backup_codes_user_id_idx").on(t.userId)],
+);
+
+/**
+ * Short-lived tokens after password OK when 2FA is required.
+ * Full session is only created after TOTP/backup verification.
+ */
+export const pending2fa = pgTable(
+  "pending_2fa",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("pending_2fa_token_hash_uidx").on(t.tokenHash),
+    index("pending_2fa_user_id_idx").on(t.userId),
+  ],
 );
 
 export const passwordResetTokens = pgTable(
@@ -479,6 +526,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     references: [runnerProfiles.userId],
   }),
   sessions: many(sessions),
+  totpBackupCodes: many(totpBackupCodes),
   goals: many(raceGoals),
   planVersions: many(planVersions),
   activities: many(activities),
@@ -523,3 +571,5 @@ export type NewRaceStrategy = typeof raceStrategies.$inferInsert;
 export type AuthRateLimit = typeof authRateLimits.$inferSelect;
 export type AdminAuditLog = typeof adminAuditLogs.$inferSelect;
 export type NewAdminAuditLog = typeof adminAuditLogs.$inferInsert;
+export type TotpBackupCode = typeof totpBackupCodes.$inferSelect;
+export type Pending2fa = typeof pending2fa.$inferSelect;
