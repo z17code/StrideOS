@@ -46,27 +46,29 @@ export default async function PlanPage() {
   return (
     <div className="page-shell-wide">
       <div className="space-y-3">
-        <div className="page-header">
-          <p className="page-eyebrow">PLAN</p>
-          <h1 className="page-title">计划</h1>
-          <p className="page-subtitle">
-            周历课表 · 版本 v{planDto?.versionNumber ?? "—"}
-          </p>
-        </div>
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-start">
-          {showOnboardingPrompt && (
-            <Link href="/onboarding" className="block">
-              <Button variant="outline" className="w-full sm:w-auto">
-                去填写问卷
-              </Button>
-            </Link>
-          )}
-          <GeneratePlanButton
-            label={planDto ? "重新生成" : "生成计划"}
-            reason={planDto ? "regenerate" : "manual"}
-            className="min-w-0"
-          />
-          {planDto && <PlanExportButtons versionId={planDto.id} />}
+        <div className="page-header-row">
+          <div className="page-header">
+            <p className="page-eyebrow">PLAN</p>
+            <h1 className="page-title">计划</h1>
+            <p className="page-subtitle">
+              周历课表 · 版本 v{planDto?.versionNumber ?? "—"}
+            </p>
+          </div>
+          <div className="desk-toolbar">
+            {showOnboardingPrompt && (
+              <Link href="/onboarding" className="block">
+                <Button variant="outline" className="w-full sm:w-auto">
+                  去填写问卷
+                </Button>
+              </Link>
+            )}
+            <GeneratePlanButton
+              label={planDto ? "重新生成" : "生成计划"}
+              reason={planDto ? "regenerate" : "manual"}
+              className="min-w-0"
+            />
+            {planDto && <PlanExportButtons versionId={planDto.id} />}
+          </div>
         </div>
         {showOnboardingPrompt && (
           <p className="text-xs text-muted-foreground">
@@ -76,17 +78,32 @@ export default async function PlanPage() {
       </div>
 
       {goal ? (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">
-              {DISTANCE_LABEL[goal.distanceType]}
-            </CardTitle>
-            <CardDescription>
-              比赛日 {goal.raceDate}
-              {goal.targetTime
-                ? ` · 目标 ${formatDurationSec(goal.targetTime)}`
-                : " · 完赛目标"}
-            </CardDescription>
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-1.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <CardTitle className="text-base lg:text-lg">
+                    {DISTANCE_LABEL[goal.distanceType]}
+                  </CardTitle>
+                  <span className="metric-chip-strong">活跃目标</span>
+                </div>
+                <CardDescription>
+                  比赛日 {goal.raceDate}
+                  {goal.targetTime
+                    ? ` · 目标 ${formatDurationSec(goal.targetTime)}`
+                    : " · 完赛目标"}
+                </CardDescription>
+              </div>
+              {planDto ? (
+                <div className="flex flex-wrap gap-2">
+                  <span className="metric-chip">共 {planDto.totalWeeks} 周</span>
+                  <span className="metric-chip">
+                    {planDto.startsOn} → {planDto.endsOn}
+                  </span>
+                </div>
+              ) : null}
+            </div>
           </CardHeader>
         </Card>
       ) : (

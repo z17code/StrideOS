@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -104,7 +104,7 @@ function MiniBarChart({
 }) {
   const max = Math.max(...data.map((d) => d.value), 0.1);
   return (
-    <div className="flex items-end gap-1 h-24">
+    <div className="flex h-24 items-end gap-1.5 lg:h-32">
       {data.map((d, i) => {
         const h = max > 0 ? (d.value / max) * 100 : 0;
         return (
@@ -157,7 +157,7 @@ function TrendDotChart({
     .join(" ");
 
   return (
-    <div className="relative h-24">
+    <div className="relative h-24 lg:h-32">
       <div className="absolute inset-0 flex flex-col justify-between text-[10px] text-muted-foreground pointer-events-none">
         <span>{maxVal}</span>
         <span>{Math.round((maxVal + minVal) / 2)}</span>
@@ -178,40 +178,80 @@ function TrendDotChart({
 
 function WeeklyView({ data }: { data: WeeklyReport }) {
   return (
-    <div className="space-y-3">
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">
-            {data.weekStart} ~ {data.weekEnd}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-0">
-          <StatRow label="距离" value={data.totalDistanceKm} unit=" km" />
-          <StatRow label="时长" value={data.totalDurationMin} unit=" min" />
-          <StatRow label="跑步次数" value={data.runCount} />
-          <StatRow label="素质课" value={data.qualityCount} />
-          <StatRow label="平均 RPE" value={data.avgRpe} />
-          <StatRow label="平均疲劳" value={data.avgFatigue} />
-          <StatRow label="平均疼痛" value={data.avgPain} />
-          <StatRow label="计划距离" value={data.plannedDistanceKm} unit=" km" />
-          <CompletionBar rate={data.completionRate} />
-          <div className="flex items-center justify-between py-1">
-            <span className="text-sm text-muted-foreground">连续跑步</span>
-            <span className="text-sm font-medium tabular-nums">
-              {data.streaks.currentRunStreak} 天 / 最长{" "}
-              {data.streaks.longestRunStreak} 天
-            </span>
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">AI 周评</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm leading-relaxed">{data.summary}</p>
-        </CardContent>
-      </Card>
+    <div className="desk-cockpit">
+      <div className="desk-main space-y-4">
+        <Card className="overflow-hidden">
+          <CardHeader className="border-b border-border/60 bg-muted/20 pb-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <CardTitle className="text-sm">
+                {data.weekStart} ~ {data.weekEnd}
+              </CardTitle>
+              <span className="metric-chip-strong">本周概览</span>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="rounded-2xl border border-border/70 bg-muted/20 px-3.5 py-3">
+                <p className="text-[11px] text-muted-foreground">距离</p>
+                <p className="mt-1 text-lg font-semibold tabular-nums tracking-tight">
+                  {data.totalDistanceKm}
+                  <span className="ml-1 text-xs font-medium text-muted-foreground">km</span>
+                </p>
+              </div>
+              <div className="rounded-2xl border border-border/70 bg-muted/20 px-3.5 py-3">
+                <p className="text-[11px] text-muted-foreground">时长</p>
+                <p className="mt-1 text-lg font-semibold tabular-nums tracking-tight">
+                  {data.totalDurationMin}
+                  <span className="ml-1 text-xs font-medium text-muted-foreground">min</span>
+                </p>
+              </div>
+              <div className="rounded-2xl border border-border/70 bg-muted/20 px-3.5 py-3">
+                <p className="text-[11px] text-muted-foreground">跑步</p>
+                <p className="mt-1 text-lg font-semibold tabular-nums tracking-tight">
+                  {data.runCount}
+                  <span className="ml-1 text-xs font-medium text-muted-foreground">次</span>
+                </p>
+              </div>
+              <div className="rounded-2xl border border-border/70 bg-muted/20 px-3.5 py-3">
+                <p className="text-[11px] text-muted-foreground">素质课</p>
+                <p className="mt-1 text-lg font-semibold tabular-nums tracking-tight">
+                  {data.qualityCount}
+                  <span className="ml-1 text-xs font-medium text-muted-foreground">次</span>
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 space-y-0 border-t border-border/60 pt-3">
+              <StatRow label="平均 RPE" value={data.avgRpe} />
+              <StatRow label="平均疲劳" value={data.avgFatigue} />
+              <StatRow label="平均疼痛" value={data.avgPain} />
+              <StatRow label="计划距离" value={data.plannedDistanceKm} unit=" km" />
+              <div className="py-2">
+                <CompletionBar rate={data.completionRate} />
+              </div>
+              <div className="flex items-center justify-between py-1">
+                <span className="text-sm text-muted-foreground">连续跑步</span>
+                <span className="text-sm font-medium tabular-nums">
+                  {data.streaks.currentRunStreak} 天 / 最长{" "}
+                  {data.streaks.longestRunStreak} 天
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      <div className="desk-rail desk-rail-sticky">
+        <Card className="overflow-hidden">
+          <CardHeader className="border-b border-border/60 bg-muted/20 pb-4">
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="text-sm">周评</CardTitle>
+              <span className="metric-chip">智能摘要</span>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <p className="text-sm leading-relaxed text-foreground/90">{data.summary}</p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
@@ -223,57 +263,60 @@ function MonthlyView({ data }: { data: MonthlyReport }) {
   }));
 
   return (
-    <div className="space-y-3">
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">{data.month}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-0">
-          <StatRow label="距离" value={data.totalDistanceKm} unit=" km" />
-          <StatRow label="时长" value={data.totalDurationMin} unit=" min" />
-          <StatRow label="跑步次数" value={data.runCount} />
-          <StatRow label="平均 RPE" value={data.avgRpe} />
-          <StatRow label="平均疼痛" value={data.avgPain} />
-          <StatRow label="覆盖周数" value={data.weekCount} />
-        </CardContent>
-      </Card>
-      {weekDistances.length > 0 && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">各周距离</CardTitle>
+    <div className="desk-cockpit">
+      <div className="desk-main space-y-4">
+        <Card className="overflow-hidden">
+          <CardHeader className="border-b border-border/60 bg-muted/20 pb-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <CardTitle className="text-sm">{data.month}</CardTitle>
+              <span className="metric-chip-strong">本月概览</span>
+            </div>
           </CardHeader>
-          <CardContent>
-            <MiniBarChart
-              data={weekDistances}
-              labelFn={(s) => s}
-            />
+          <CardContent className="space-y-0 pt-4">
+            <StatRow label="距离" value={data.totalDistanceKm} unit=" km" />
+            <StatRow label="时长" value={data.totalDurationMin} unit=" min" />
+            <StatRow label="跑步次数" value={data.runCount} />
+            <StatRow label="平均 RPE" value={data.avgRpe} />
+            <StatRow label="平均疼痛" value={data.avgPain} />
+            <StatRow label="覆盖周数" value={data.weekCount} />
           </CardContent>
         </Card>
-      )}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">AI 月评</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm leading-relaxed">{data.summary}</p>
-        </CardContent>
-      </Card>
+        {weekDistances.length > 0 && (
+          <Card className="overflow-hidden">
+            <CardHeader className="border-b border-border/60 bg-muted/20 pb-3">
+              <CardTitle className="text-sm">各周距离</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <MiniBarChart data={weekDistances} labelFn={(s) => s} />
+            </CardContent>
+          </Card>
+        )}
+      </div>
+      <div className="desk-rail desk-rail-sticky">
+        <Card className="overflow-hidden">
+          <CardHeader className="border-b border-border/60 bg-muted/20 pb-4">
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="text-sm">月评</CardTitle>
+              <span className="metric-chip">智能摘要</span>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <p className="text-sm leading-relaxed text-foreground/90">{data.summary}</p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
 
 function TrendsView({ data }: { data: TrendReport }) {
-  const maxDist = Math.max(
-    ...data.weeklyDistances.map((d) => d.distanceKm),
-    0.1,
-  );
   const barData = data.weeklyDistances.map((d) => ({
     label: d.weekStart.slice(5),
     value: d.distanceKm,
   }));
 
   return (
-    <div className="space-y-3">
+    <div className="grid gap-4 lg:grid-cols-2">
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm">每周距离</CardTitle>
@@ -307,12 +350,15 @@ function TrendsView({ data }: { data: TrendReport }) {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">AI 趋势分析</CardTitle>
+      <Card className="lg:col-span-2 overflow-hidden">
+        <CardHeader className="border-b border-border/60 bg-muted/20 pb-3">
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className="text-sm">趋势分析</CardTitle>
+            <span className="metric-chip">智能摘要</span>
+          </div>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm leading-relaxed">{data.summary}</p>
+        <CardContent className="pt-4">
+          <p className="text-sm leading-relaxed text-foreground/90">{data.summary}</p>
         </CardContent>
       </Card>
     </div>
@@ -321,69 +367,76 @@ function TrendsView({ data }: { data: TrendReport }) {
 
 /* ── main client component ────────────────────────────── */
 
-export function InsightTabs({ userId }: { userId: string }) {
+export function InsightTabs({ userId: _userId }: { userId: string }) {
   const [tab, setTab] = useState<Tab>("weekly");
   const [weekly, setWeekly] = useState<WeeklyReport | null>(null);
   const [monthly, setMonthly] = useState<MonthlyReport | null>(null);
   const [trends, setTrends] = useState<TrendReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const initialized = useRef(false);
-
-  async function loadCurrentTab() {
-    setLoading(true);
-    setError(null);
-    try {
-      if (tab === "weekly") {
-        const res = await fetch("/api/v1/reports/weekly");
-        if (!res.ok) throw new Error("周报加载失败");
-        const d = await res.json();
-        setWeekly(d.report);
-      } else if (tab === "monthly") {
-        const res = await fetch("/api/v1/reports/monthly");
-        if (!res.ok) throw new Error("月报加载失败");
-        const d = await res.json();
-        setMonthly(d.report);
-      } else {
-        const res = await fetch("/api/v1/reports/trends");
-        if (!res.ok) throw new Error("趋势加载失败");
-        const d = await res.json();
-        setTrends(d.report);
-      }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "加载失败");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   useEffect(() => {
-    if (!initialized.current) {
-      initialized.current = true;
-      loadCurrentTab();
+    let cancelled = false;
+
+    async function loadCurrentTab() {
+      setLoading(true);
+      setError(null);
+      try {
+        if (tab === "weekly") {
+          const res = await fetch("/api/v1/reports/weekly");
+          if (!res.ok) throw new Error("周报加载失败");
+          const d = await res.json();
+          if (!cancelled) setWeekly(d.report);
+        } else if (tab === "monthly") {
+          const res = await fetch("/api/v1/reports/monthly");
+          if (!res.ok) throw new Error("月报加载失败");
+          const d = await res.json();
+          if (!cancelled) setMonthly(d.report);
+        } else {
+          const res = await fetch("/api/v1/reports/trends");
+          if (!res.ok) throw new Error("趋势加载失败");
+          const d = await res.json();
+          if (!cancelled) setTrends(d.report);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : "加载失败");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
+
+    void loadCurrentTab();
+    return () => {
+      cancelled = true;
+    };
   }, [tab]);
+
 
   const data =
     tab === "weekly" ? weekly : tab === "monthly" ? monthly : trends;
 
   return (
-    <div className="space-y-4">
-      <div className="flex gap-1 rounded-md border border-border p-1 w-fit">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={cn(
-              "px-4 py-1.5 rounded-md text-sm font-medium transition-colors",
-              tab === t.key
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {t.label}
-          </button>
-        ))}
+    <div className="space-y-5">
+      <div className="desk-toolbar justify-start">
+        <div className="inline-flex gap-1 rounded-full border border-border/80 bg-card/90 p-1 shadow-sm">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => setTab(t.key)}
+              className={cn(
+                "pressable rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+                tab === t.key
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
+              )}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {error && (
@@ -393,11 +446,14 @@ export function InsightTabs({ userId }: { userId: string }) {
       )}
 
       {loading && !data && (
-        <Card>
-          <CardContent className="py-8 text-center text-sm text-muted-foreground">
-            加载中…
-          </CardContent>
-        </Card>
+        <div className="desk-cockpit">
+          <div className="desk-main">
+            <div className="skeleton h-64 w-full rounded-2xl" />
+          </div>
+          <div className="desk-rail">
+            <div className="skeleton h-40 w-full rounded-2xl" />
+          </div>
+        </div>
       )}
 
       {!loading && !error && data && (

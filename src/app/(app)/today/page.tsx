@@ -170,15 +170,22 @@ function CheckinSection({
   const isEdit = !!initial;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">
-          {isEdit ? "今日打卡" : "打卡"}
-        </CardTitle>
-        <CardDescription>
-          疲劳 1–5 · 疼痛 0–10
-          {isEdit && " · 更新今日状态"}
-        </CardDescription>
+    <Card className="lg:shadow-[var(--shadow-elevated)]">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1">
+            <CardTitle className="text-base lg:text-lg">
+              {isEdit ? "今日打卡" : "打卡"}
+            </CardTitle>
+            <CardDescription>
+              疲劳 1–5 · 疼痛 0–10
+              {isEdit && " · 更新今日状态"}
+            </CardDescription>
+          </div>
+          <span className={isEdit ? "metric-chip-strong" : "metric-chip"}>
+            {isEdit ? "已记录" : "待完成"}
+          </span>
+        </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -199,7 +206,7 @@ function CheckinSection({
               {error}
             </p>
           )}
-          <Button type="submit" disabled={saving} className="w-full">
+          <Button type="submit" disabled={saving} className="w-full lg:h-11">
             {saving ? "保存中…" : isEdit ? "更新打卡" : "提交打卡"}
           </Button>
         </form>
@@ -313,13 +320,22 @@ function AdjustmentsSection({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-base">调课建议</CardTitle>
-        <CardDescription>
-          {pending.length > 0
-            ? `${pending.length} 条待处理`
-            : "暂无待处理提案"}
-        </CardDescription>
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1">
+            <CardTitle className="text-base">调课建议</CardTitle>
+            <CardDescription>
+              {pending.length > 0
+                ? `${pending.length} 条待处理`
+                : "暂无待处理提案"}
+            </CardDescription>
+          </div>
+          {pending.length > 0 ? (
+            <span className="metric-chip-strong">待处理</span>
+          ) : (
+            <span className="metric-chip">空闲</span>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
         {!proposing && proposals.length === 0 && (
@@ -416,17 +432,20 @@ function TodayActivities({ activities }: { activities: ActivityData[] }) {
   if (activities.length === 0) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">今日训练</CardTitle>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className="text-base">今日训练</CardTitle>
+            <span className="metric-chip">0 条</span>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col items-start gap-3 rounded-xl border border-dashed border-border/80 bg-muted/20 p-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">
               暂无记录 — 去添加今日训练
             </p>
             <a
               href="/activity"
-              className="inline-flex h-9 items-center justify-center rounded-lg border border-border bg-card px-3 text-sm font-medium touch-manipulation active:opacity-80"
+              className="inline-flex h-9 items-center justify-center rounded-xl border border-border bg-card px-3.5 text-sm font-medium shadow-sm touch-manipulation active:opacity-80 hover:border-primary/30 hover:text-primary"
             >
               去记录
             </a>
@@ -438,15 +457,18 @@ function TodayActivities({ activities }: { activities: ActivityData[] }) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-base">今日训练</CardTitle>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="text-base">今日训练</CardTitle>
+          <span className="metric-chip-strong">{activities.length} 条</span>
+        </div>
       </CardHeader>
       <CardContent>
         <ul className="space-y-2">
           {activities.map((a) => (
             <li
               key={a.id}
-              className="rounded-lg border border-border/80 bg-muted/20 p-3 space-y-1"
+              className="space-y-1 rounded-xl border border-border/80 bg-muted/20 p-3 transition-colors hover:border-primary/20"
             >
               <div className="flex items-center justify-between">
                 <span className="font-medium text-sm">
@@ -541,36 +563,61 @@ export default function TodayPage() {
   if (loading) {
     return (
       <div className="page-shell">
-        <div className="page-header">
-          <p className="page-eyebrow">TODAY</p>
-          <h1 className="page-title">今日</h1>
-          <div className="skeleton mt-2 h-4 w-40" />
+        <div className="page-header-row">
+          <div className="page-header">
+            <p className="page-eyebrow">TODAY</p>
+            <h1 className="page-title">今日</h1>
+            <div className="skeleton mt-2 h-4 w-40" />
+          </div>
         </div>
-        <div className="grid gap-5 lg:grid-cols-2">
-          <div className="skeleton h-48 w-full rounded-2xl" />
-          <div className="skeleton h-48 w-full rounded-2xl" />
+        <div className="desk-cockpit">
+          <div className="desk-main">
+            <div className="skeleton h-56 w-full rounded-2xl" />
+          </div>
+          <div className="desk-rail space-y-5">
+            <div className="skeleton h-40 w-full rounded-2xl" />
+            <div className="skeleton h-32 w-full rounded-2xl" />
+          </div>
         </div>
-        <div className="skeleton h-24 w-full rounded-2xl" />
       </div>
     );
   }
 
+  const pendingCount = proposals.filter((p) => p.status === "pending").length;
+
   return (
     <div className="page-shell">
-      <div className="page-header">
-        <p className="page-eyebrow">TODAY</p>
-        <h1 className="page-title">今日</h1>
-        <p className="page-subtitle">{todayFormatted}</p>
+      <div className="page-header-row">
+        <div className="page-header">
+          <p className="page-eyebrow">TODAY</p>
+          <h1 className="page-title">今日</h1>
+          <p className="page-subtitle">{todayFormatted}</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className={checkin ? "metric-chip-strong" : "metric-chip"}>
+            打卡 {checkin ? "已完成" : "未完成"}
+          </span>
+          <span className={activities.length ? "metric-chip-strong" : "metric-chip"}>
+            训练 {activities.length}
+          </span>
+          <span className={pendingCount ? "metric-chip-strong" : "metric-chip"}>
+            调课 {pendingCount}
+          </span>
+        </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
-        <CheckinSection initial={checkin} onSaved={handleCheckinSaved} />
-        <TodayActivities activities={activities} />
+      <div className="desk-cockpit">
+        <div className="desk-main">
+          <CheckinSection initial={checkin} onSaved={handleCheckinSaved} />
+        </div>
+        <div className="desk-rail desk-rail-sticky">
+          <TodayActivities activities={activities} />
+          <AdjustmentsSection
+            proposals={proposals}
+            onAction={handleAdjustmentAction}
+          />
+        </div>
       </div>
-      <AdjustmentsSection
-        proposals={proposals}
-        onAction={handleAdjustmentAction}
-      />
     </div>
   );
 }

@@ -115,14 +115,19 @@ function CreateForm({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">记录训练</CardTitle>
-        <CardDescription>添加新的训练记录</CardDescription>
+    <Card className="overflow-hidden">
+      <CardHeader className="border-b border-border/60 bg-muted/20 pb-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1">
+            <CardTitle className="text-base">记录训练</CardTitle>
+            <CardDescription>添加新的训练记录</CardDescription>
+          </div>
+          <span className="metric-chip hidden sm:inline-flex">手写录入</span>
+        </div>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={submit} className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+      <CardContent className="pt-5">
+        <form onSubmit={submit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-3 lg:gap-4">
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">日期</Label>
               <Input
@@ -166,7 +171,7 @@ function CreateForm({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-3 lg:gap-4">
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">距离 (km)</Label>
               <Input
@@ -203,7 +208,7 @@ function CreateForm({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3 lg:gap-4">
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">RPE (1-10)</Label>
               <Input
@@ -241,12 +246,12 @@ function CreateForm({
 
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">
-              幂等 ID（可选）
+              同步标记（可选）
             </Label>
             <Input
               value={form.mutationId}
               onChange={(e) => set("mutationId", e.target.value)}
-              placeholder="防止重复提交，如 strava_abc123"
+              placeholder="避免重复录入时可填写唯一标记"
             />
           </div>
 
@@ -256,8 +261,8 @@ function CreateForm({
             </p>
           )}
 
-          <Button type="submit" disabled={saving} className="w-full">
-            {saving ? "保存中…" : "保存"}
+          <Button type="submit" disabled={saving} className="w-full lg:w-auto lg:min-w-[8.5rem]">
+            {saving ? "保存中…" : "保存记录"}
           </Button>
         </form>
       </CardContent>
@@ -293,42 +298,55 @@ function ActivityList({ items, onChanged }: { items: ActivityData[]; onChanged: 
 
   if (items.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">训练记录</CardTitle>
+      <Card className="overflow-hidden">
+        <CardHeader className="border-b border-border/60 bg-muted/20 pb-4">
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle className="text-base">训练记录</CardTitle>
+            <span className="metric-chip">0 条</span>
+          </div>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">暂无记录</p>
+        <CardContent className="pt-5">
+          <div className="rounded-2xl border border-dashed border-border/80 bg-muted/20 px-4 py-8 text-center">
+            <p className="text-sm font-medium text-foreground">还没有训练记录</p>
+            <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+              填写训练表单并保存后，记录会出现在这里
+            </p>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">训练记录</CardTitle>
-        <CardDescription>共 {items.length} 条</CardDescription>
+    <Card className="overflow-hidden">
+      <CardHeader className="border-b border-border/60 bg-muted/20 pb-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="space-y-1">
+            <CardTitle className="text-base">训练记录</CardTitle>
+            <CardDescription>最近 {items.length} 条</CardDescription>
+          </div>
+          <span className="metric-chip-strong">{items.length} 条</span>
+        </div>
       </CardHeader>
-      <CardContent>
-        <ul className="space-y-2">
+      <CardContent className="pt-4">
+        <ul className="space-y-2.5">
           {items.map((a) => (
             <li
               key={a.id}
-              className="rounded-md border border-border p-3"
+              className="rounded-xl border border-border/70 bg-muted/25 p-3.5 transition-colors hover:bg-muted/40"
             >
-              <div className="flex items-start justify-between gap-2">
-                <div className="space-y-1 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1 space-y-1.5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-semibold tracking-tight">
                       {WORKOUT_LABEL[a.workoutType as keyof typeof WORKOUT_LABEL] ??
                         a.workoutType}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="metric-chip !px-2 !py-0.5">
                       {a.date}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground tabular-nums">
+                  <p className="text-xs leading-relaxed text-muted-foreground tabular-nums">
                     {a.distanceKm != null ? `${a.distanceKm} km` : "—"}
                     {a.durationMin != null
                       ? ` · ${a.durationMin} min`
@@ -340,7 +358,7 @@ function ActivityList({ items, onChanged }: { items: ActivityData[]; onChanged: 
                     {a.painLevel != null ? ` · 疼痛 ${a.painLevel}` : ""}
                   </p>
                   {a.notes && (
-                    <p className="text-xs text-muted-foreground">{a.notes}</p>
+                    <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">{a.notes}</p>
                   )}
                 </div>
                 <Button
@@ -397,27 +415,51 @@ export default function ActivityPage() {
   if (loading) {
     return (
       <div className="page-shell">
-        <div className="page-header">
-          <p className="page-eyebrow">ACTIVITY</p>
-          <h1 className="page-title">记录</h1>
-          <div className="skeleton mt-2 h-4 w-28" />
+        <div className="page-header-row">
+          <div className="page-header">
+            <p className="page-eyebrow">ACTIVITY</p>
+            <h1 className="page-title">记录</h1>
+            <div className="skeleton mt-2 h-4 w-36" />
+          </div>
         </div>
-        <div className="skeleton h-56 w-full rounded-2xl" />
-        <div className="skeleton h-40 w-full rounded-2xl" />
+        <div className="desk-cockpit">
+          <div className="desk-main">
+            <div className="skeleton h-72 w-full rounded-2xl" />
+          </div>
+          <div className="desk-rail">
+            <div className="skeleton h-56 w-full rounded-2xl" />
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="page-shell">
-      <div>
-        <h1 className="page-title">记录</h1>
-        <p className="page-subtitle">
-          手动添加训练记录
-        </p>
+      <div className="page-header-row">
+        <div className="page-header">
+          <p className="page-eyebrow">ACTIVITY</p>
+          <h1 className="page-title">记录</h1>
+          <p className="page-subtitle">
+            手动录入训练；宽屏下表单与历史并排，更像工作台
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className={activities.length ? "metric-chip-strong" : "metric-chip"}>
+            记录 {activities.length}
+          </span>
+          <span className="metric-chip hidden sm:inline-flex">最近 50 条</span>
+        </div>
       </div>
-      <CreateForm onCreated={handleCreated} />
-      <ActivityList items={activities} onChanged={handleCreated} />
+
+      <div className="desk-cockpit">
+        <div className="desk-main">
+          <CreateForm onCreated={handleCreated} />
+        </div>
+        <div className="desk-rail desk-rail-sticky">
+          <ActivityList items={activities} onChanged={handleCreated} />
+        </div>
+      </div>
     </div>
   );
 }

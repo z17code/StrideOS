@@ -112,12 +112,15 @@ export function WeeklyCalendar({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-card/70 px-3.5 py-3 shadow-sm lg:px-4">
+        <div className="space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-semibold tracking-tight">
+              第 {weekNumber} 周
+            </p>
+            <span className="metric-chip">{PHASE_LABEL[phase]}</span>
+          </div>
           <p className="text-sm text-muted-foreground">
-            第 {weekNumber} 周 · {PHASE_LABEL[phase]}
-          </p>
-          <p className="text-sm font-medium">
             {formatMonthDayZh(weekStart)} – {formatMonthDayZh(days[6]!)}
           </p>
         </div>
@@ -200,22 +203,32 @@ function DayCell({
   return (
     <div
       className={cn(
-        "rounded-xl border border-border/80 bg-card p-2.5 shadow-sm",
-        isToday && "ring-2 ring-ring",
-        agenda && "flex gap-3",
+        agenda
+          ? "flex gap-3 rounded-xl border border-border/80 bg-card p-2.5 shadow-sm"
+          : "desk-day-cell",
+        isToday && (agenda ? "ring-2 ring-ring" : "desk-day-cell-today"),
       )}
     >
-      <div className={cn("mb-2", agenda && "mb-0 w-14 shrink-0")}>
-        <p className="text-xs text-muted-foreground">{weekdayLabelZh(date)}</p>
-        <p
-          className={cn(
-            "text-sm font-medium tabular-nums",
-            isToday &&
-              "inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground",
-          )}
-        >
-          {Number(date.slice(8, 10))}
-        </p>
+      <div className={cn(agenda ? "mb-0 w-14 shrink-0" : "mb-2.5 flex items-center justify-between gap-2")}>
+        <div>
+          <p className="text-[11px] font-medium text-muted-foreground">
+            {weekdayLabelZh(date)}
+          </p>
+          <p
+            className={cn(
+              "text-sm font-semibold tabular-nums",
+              isToday &&
+                "mt-0.5 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-primary px-1.5 text-primary-foreground",
+            )}
+          >
+            {Number(date.slice(8, 10))}
+          </p>
+        </div>
+        {!agenda && workouts.some((w) => w.isQuality) ? (
+          <span className="rounded-full bg-primary-soft px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+            质量
+          </span>
+        ) : null}
       </div>
       <div className="min-w-0 flex-1 space-y-1.5">
         {workouts.length === 0 ? (
@@ -231,9 +244,9 @@ function DayCell({
                 w.isQuality && "border-foreground/40",
               )}
             >
-              <p className="font-medium">{workoutTitle(w.workoutType)}</p>
+              <p className="font-medium leading-snug">{workoutTitle(w.workoutType)}</p>
               {w.distanceKm != null && (
-                <p className="tabular-nums text-muted-foreground">
+                <p className="mt-0.5 tabular-nums text-muted-foreground">
                   {w.distanceKm} km
                   {w.targetRpe != null ? ` · RPE ${w.targetRpe}` : ""}
                 </p>

@@ -52,13 +52,18 @@ export default async function AppLayout({
             </div>
           </div>
           <div className="ml-auto flex min-w-0 items-center gap-3">
-            <div className="hidden items-center gap-2 md:flex">
-              <span className="status-dot" />
-              <span className="text-xs font-medium tracking-wide text-muted-foreground">
-                训练驾驶舱
+            <div className="hidden items-center gap-3 md:flex">
+              <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-muted/40 px-3 py-1.5">
+                <span className="status-dot" />
+                <span className="text-xs font-medium tracking-wide text-muted-foreground">
+                  训练驾驶舱
+                </span>
+              </span>
+              <span className="hidden text-[11px] text-muted-foreground/80 lg:inline">
+                Asia/Shanghai
               </span>
             </div>
-            <span className="max-w-[10rem] truncate rounded-full border border-border/80 bg-muted/50 px-3 py-1.5 text-xs font-medium text-foreground shadow-sm backdrop-blur-md lg:max-w-[14rem]">
+            <span className="max-w-[10rem] truncate rounded-full border border-border/80 bg-card px-3 py-1.5 text-xs font-medium text-foreground shadow-sm lg:max-w-[14rem]">
               {user.username}
             </span>
           </div>
@@ -67,11 +72,13 @@ export default async function AppLayout({
         <main
           className={
             completed
-              ? "relative flex-1 px-4 py-5 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:px-6 md:py-7 md:pb-10 lg:px-8"
-              : "relative flex-1 px-4 py-5 md:px-6 md:py-7 lg:px-8"
+              ? "relative flex-1 px-4 py-5 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:px-6 md:py-7 md:pb-10 lg:px-8 xl:px-10"
+              : "relative flex-1 px-4 py-5 md:px-6 md:py-7 lg:px-8 xl:px-10"
           }
         >
-          <PageEnter>{children}</PageEnter>
+          <div className="app-main-inner">
+            <PageEnter>{children}</PageEnter>
+          </div>
         </main>
       </div>
     </div>

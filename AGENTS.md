@@ -230,5 +230,13 @@ npm run cap:open      # Android Studio 打开工程
 
 28. **全站公告**：表 `announcements`（迁移 `0009_announcements`）；管理端 `/admin/announcements` CRUD + 发布/下线；用户 `GET /api/v1/announcements` + 主站 `AnnouncementBanner`（关闭状态存 localStorage `strideos_announcement_dismissed`）。
 
+29. **桌面工作台布局（Desktop cockpit）**：
+    - 电脑端用 `desk-cockpit` / `desk-main` / `desk-rail` 做主栏+侧栏；移动端仍单列。
+    - 页面宽度：`page-shell` 在 lg/xl 更宽；计划/工具/洞察用 `page-shell-wide`。
+    - 页面头可用 `page-header-row` 放状态 chips / 工具条；状态标签用 `metric-chip` / `metric-chip-strong`。
+    - 周历桌面日格：`desk-day-cell` + 今日 `desk-day-cell-today`；移动端 agenda 不变。
+    - 今日 / 记录 / 洞察：宽屏主栏操作 + sticky 侧栏摘要/历史；洞察周报 KPI 用指标块，趋势两列。
+    - 禁止：营销 hero、装饰光球、卡片套卡片；桌面增强优先 `lg:` / `xl:`。
 
-*最后文档维护提醒写入：2026-07-18（苹果风样式系统 + 可收起侧栏 + 公告）*
+
+*最后文档维护提醒写入：2026-07-19（桌面工作台：记录/洞察续）*

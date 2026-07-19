@@ -88,7 +88,7 @@ export function AppNav() {
           ready && collapsed && "app-sidebar-collapsed",
         )}
       >
-        <div className="app-sidebar-brand flex h-16 items-center gap-3 border-b border-border/70 px-4">
+        <div className="app-sidebar-brand flex h-[3.75rem] items-center gap-3 border-b border-border/70 px-3.5 lg:px-4">
           <span
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-primary text-xs font-bold text-primary-foreground shadow-[0_8px_20px_-10px_color-mix(in_srgb,var(--color-primary)_70%,transparent)]"
             aria-hidden
@@ -103,13 +103,16 @@ export function AppNav() {
               StrideOS
             </Link>
             <p className="truncate text-[11px] text-muted-foreground">
-              长跑训练系统
+              训练驾驶舱
             </p>
           </div>
           <button
             type="button"
             onClick={toggleCollapsed}
-            className={cn("pressable h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground", collapsed ? "hidden" : "hidden md:inline-flex")}
+            className={cn(
+              "pressable h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground",
+              collapsed ? "hidden" : "hidden md:inline-flex",
+            )}
             aria-label={collapsed ? "展开侧栏" : "收起侧栏"}
             title={collapsed ? "展开侧栏" : "收起侧栏"}
           >
@@ -121,8 +124,8 @@ export function AppNav() {
           </button>
         </div>
         <nav className="flex flex-1 flex-col gap-1 p-2.5 lg:p-3">
-          <p className="app-sidebar-label mb-1 px-3 text-[10px] font-medium tracking-[0.16em] text-muted-foreground/80">
-            导航
+          <p className="app-sidebar-label mb-1.5 px-3 text-[10px] font-medium tracking-[0.16em] text-muted-foreground/80">
+            工作区
           </p>
           {navItems.map(({ href, label, icon: Icon }) => {
             const active =
@@ -159,8 +162,8 @@ export function AppNav() {
           })}
         </nav>
         <div className="app-sidebar-footer border-t border-border/70 p-3">
-          <div className="app-sidebar-label rounded-2xl border border-border/70 bg-muted/40 px-3 py-3">
-            <p className="text-[11px] font-medium text-foreground">
+          <div className="app-sidebar-label rounded-2xl border border-border/70 bg-gradient-to-b from-muted/50 to-muted/20 px-3 py-3">
+            <p className="text-[11px] font-semibold tracking-tight text-foreground">
               计划 · 打卡 · 洞察
             </p>
             <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">

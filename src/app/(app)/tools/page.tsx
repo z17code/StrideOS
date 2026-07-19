@@ -176,24 +176,32 @@ const GROUPS: Array<{ title: string; items: ToolItem[] }> = [
 export default async function ToolsPage() {
   await requireOnboardedUser();
   return (
-    <div className="page-shell">
-      <div className="page-header">
-        <p className="page-eyebrow">TOOLS</p>
-        <h1 className="page-title">工具</h1>
-        <p className="page-subtitle">
-          成绩、配速、恢复与装备相关小工具
-        </p>
+    <div className="page-shell-wide">
+      <div className="page-header-row">
+        <div className="page-header">
+          <p className="page-eyebrow">TOOLS</p>
+          <h1 className="page-title">工具</h1>
+          <p className="page-subtitle">
+            成绩、配速、恢复与装备相关小工具
+          </p>
+        </div>
+        <span className="metric-chip">
+          {GROUPS.reduce((n, g) => n + g.items.length, 0)} 个工具
+        </span>
       </div>
 
       {GROUPS.map((group) => (
         <section key={group.title} className="space-y-3">
-          <div className="flex items-center gap-3">
-            <h2 className="text-sm font-semibold tracking-tight text-foreground">
+          <div className="section-rule">
+            <h2 className="shrink-0 text-sm font-semibold tracking-tight text-foreground">
               {group.title}
             </h2>
-            <div className="h-px flex-1 bg-border/80" />
+            <span className="section-rule-line" />
+            <span className="shrink-0 text-[11px] text-muted-foreground">
+              {group.items.length}
+            </span>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="tool-grid">
             {group.items.map((t) => {
               const Icon = t.icon;
               return (
@@ -204,17 +212,19 @@ export default async function ToolsPage() {
                 >
                   <Card className="surface-interactive h-full group-hover:border-primary/25 group-hover:bg-card">
                     <CardHeader className="pb-3">
-                      <div className="tool-icon mb-2 group-hover:bg-primary group-hover:text-primary-foreground">
-                        <Icon className="h-4 w-4" />
+                      <div className="mb-2 flex items-start justify-between gap-3">
+                        <div className="tool-icon group-hover:bg-primary group-hover:text-primary-foreground">
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <span className="text-[11px] font-medium text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+                          打开
+                        </span>
                       </div>
-                      <CardTitle>{t.title}</CardTitle>
-                      <CardDescription>{t.description}</CardDescription>
+                      <CardTitle className="text-[0.95rem]">{t.title}</CardTitle>
+                      <CardDescription className="line-clamp-2">
+                        {t.description}
+                      </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                      <span className="text-xs font-medium text-muted-foreground transition-colors group-hover:text-primary">
-                        进入 →
-                      </span>
-                    </CardContent>
                   </Card>
                 </Link>
               );
